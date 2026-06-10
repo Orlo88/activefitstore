@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ActiveFit Store CR</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -804,6 +807,11 @@ let _pf='todos',_ps='';
 function filterPedidos(f,btn){_pf=f;document.querySelectorAll('.filter-bar .filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderPedidos()}
 function searchPedidos(q){_ps=q.toLowerCase();renderPedidos()}
 function renderPedidos(){
+  // Force string conversion on every render
+  CACHE.pedidos = CACHE.pedidos.map(p=>{
+    ['clienteNombre','clienteTel','canal','zona','marca','modelo','talla','color','estado','notas','id'].forEach(f=>{p[f]=String(p[f]||'')});
+    return p;
+  });
   let pedidos=[...CACHE.pedidos].sort((a,b)=>Number(b.createdAt)-Number(a.createdAt));
   if(_pf!=='todos')pedidos=pedidos.filter(p=>p.estado===_pf);
   if(_ps)pedidos=pedidos.filter(p=>(p.clienteNombre||'').toLowerCase().includes(_ps)||(p.modelo||'').toLowerCase().includes(_ps));
@@ -862,6 +870,11 @@ function editPedido(id){const p=CACHE.pedidos.find(x=>x.id===id);if(p)openModal(
 // ══════════════════════════════════════════════════
 let _cs='';function searchClientes(q){_cs=q.toLowerCase();renderClientes()}
 function renderClientes(){
+  // Force string conversion on every render to handle Sheets number types
+  CACHE.clientes = CACHE.clientes.map(c=>{
+    ['nombre','tel','canal','zona','notas','id'].forEach(f=>{c[f]=String(c[f]||'')});
+    return c;
+  });
   let clientes=[...CACHE.clientes].sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''));
   if(_cs)clientes=clientes.filter(c=>(c.nombre||'').toLowerCase().includes(_cs)||(c.tel||'').includes(_cs));
   const tbody=document.getElementById('clientes-tbody');
