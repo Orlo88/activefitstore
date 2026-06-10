@@ -210,11 +210,14 @@ input[readonly]{background:var(--surface3);cursor:default}
 <div id="page-dashboard" class="page active">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
     <div class="page-title">Dashboard</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap" id="period-btns">
-      <button class="filter-btn" onclick="setPeriod('mes',this)">Este mes</button>
-      <button class="filter-btn" onclick="setPeriod('mes_ant',this)">Mes anterior</button>
-      <button class="filter-btn" onclick="setPeriod('anio',this)">Este año</button>
-      <button class="filter-btn active" onclick="setPeriod('todo',this)">Todo</button>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="period-btns">
+        <button class="filter-btn" onclick="setPeriod('mes',this)">Este mes</button>
+        <button class="filter-btn" onclick="setPeriod('mes_ant',this)">Mes anterior</button>
+        <button class="filter-btn" onclick="setPeriod('anio',this)">Este año</button>
+        <button class="filter-btn active" onclick="setPeriod('todo',this)">Todo</button>
+      </div>
+      <button onclick="refreshBtn(this)" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'"><span class="refresh-icon" style="display:inline-block;transition:transform .4s">🔄</span> Actualizar</button>
     </div>
   </div>
   <div class="page-sub" id="dash-date-label"></div>
@@ -245,7 +248,7 @@ input[readonly]{background:var(--surface3);cursor:default}
     <div id="dash-tracking" style="font-size:12px"></div>
   </div>
   <div class="panel">
-    <div class="panel-header"><div class="panel-title">Actividad reciente</div><button class="btn btn-ghost btn-sm" onclick="loadAll()">🔄 Sincronizar</button></div>
+    <div class="panel-header"><div class="panel-title">Actividad reciente</div></div>
     <div id="activity-feed"><div style="text-align:center;padding:32px;color:var(--text3);font-size:13px">Cargando…</div></div>
   </div>
 </div>
@@ -254,7 +257,10 @@ input[readonly]{background:var(--surface3);cursor:default}
 <div id="page-pedidos" class="page">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
     <div class="page-title">Pedidos</div>
-    <button class="btn btn-primary" onclick="openModal('pedido')">+ Nuevo pedido</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="refreshBtn(this)" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'"><span class="refresh-icon" style="display:inline-block;transition:transform .4s">🔄</span> Actualizar</button>
+      <button class="btn btn-primary" onclick="openModal('pedido')">+ Nuevo pedido</button>
+    </div>
   </div>
   <div class="page-sub">Encargos · adelanto ₡15,000 · saldo al envío · tracking de tránsito</div>
   <div class="filter-bar">
@@ -264,6 +270,12 @@ input[readonly]{background:var(--surface3);cursor:default}
     <button class="filter-btn" onclick="filterPedidos('Entregado',this)">Entregados</button>
     <button class="filter-btn" onclick="filterPedidos('Cancelado',this)">Cancelados</button>
     <input class="search-input" type="text" placeholder="Buscar cliente, modelo…" oninput="searchPedidos(this.value)"/>
+    <select id="pedidos-sort" onchange="_psort=this.value;renderPedidos()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;outline:none;appearance:none;-webkit-appearance:none">
+      <option value="reciente">↓ Más reciente</option>
+      <option value="antiguo">↑ Más antiguo</option>
+      <option value="precio_desc">₡ Mayor precio</option>
+      <option value="precio_asc">₡ Menor precio</option>
+    </select>
   </div>
   <div class="panel" style="padding:0">
     <div class="table-wrap">
@@ -279,7 +291,10 @@ input[readonly]{background:var(--surface3);cursor:default}
 <div id="page-clientes" class="page">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
     <div class="page-title">Clientes</div>
-    <button class="btn btn-primary" onclick="openModal('cliente')">+ Nuevo cliente</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="refreshBtn(this)" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'"><span class="refresh-icon" style="display:inline-block;transition:transform .4s">🔄</span> Actualizar</button>
+      <button class="btn btn-primary" onclick="openModal('cliente')">+ Nuevo cliente</button>
+    </div>
   </div>
   <div class="page-sub">Base de clientes ActiveFit Store CR</div>
   <div class="filter-bar"><input class="search-input" type="text" placeholder="Buscar…" oninput="searchClientes(this.value)"/></div>
@@ -297,7 +312,10 @@ input[readonly]{background:var(--surface3);cursor:default}
 <div id="page-metaads" class="page">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
     <div class="page-title">Meta Ads</div>
-    <button class="btn btn-primary" onclick="openModal('campana')">+ Nueva campaña</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="refreshBtn(this)" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'"><span class="refresh-icon" style="display:inline-block;transition:transform .4s">🔄</span> Actualizar</button>
+      <button class="btn btn-primary" onclick="openModal('campana')">+ Nueva campaña</button>
+    </div>
   </div>
   <div class="page-sub">Control de campañas Facebook / Instagram</div>
   <div class="kpi-grid">
@@ -320,7 +338,10 @@ input[readonly]{background:var(--surface3);cursor:default}
 <div id="page-catalogo" class="page">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
     <div class="page-title">Catálogo</div>
-    <button class="btn btn-primary" onclick="openModal('modelo')">+ Agregar modelo</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="refreshBtn(this)" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'"><span class="refresh-icon" style="display:inline-block;transition:transform .4s">🔄</span> Actualizar</button>
+      <button class="btn btn-primary" onclick="openModal('modelo')">+ Agregar modelo</button>
+    </div>
   </div>
   <div class="page-sub">Modelos disponibles para encargo</div>
   <div id="catalogo-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-top:8px"></div>
@@ -328,7 +349,10 @@ input[readonly]{background:var(--surface3);cursor:default}
 
 <!-- AJUSTES -->
 <div id="page-ajustes" class="page">
-  <div class="page-title">Ajustes</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
+    <div class="page-title">Ajustes</div>
+    <button onclick="refreshBtn(this)" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'"><span class="refresh-icon" style="display:inline-block;transition:transform .4s">🔄</span> Actualizar</button>
+  </div>
   <div class="page-sub">Configuración del negocio, proveedor y conexión</div>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px">
 
@@ -814,16 +838,25 @@ function showCanalDetail(canal){const ps=CACHE.pedidos.filter(p=>p.canal===canal
 // ══════════════════════════════════════════════════
 // PEDIDOS
 // ══════════════════════════════════════════════════
-let _pf='todos',_ps='';
+let _pf='todos',_ps='',_psort='reciente';
 function filterPedidos(f,btn){_pf=f;document.querySelectorAll('.filter-bar .filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderPedidos()}
 function searchPedidos(q){_ps=q.toLowerCase();renderPedidos()}
 function renderPedidos(){
+  // Sync sort select
+  const sortEl=document.getElementById('pedidos-sort');
+  if(sortEl&&sortEl.value!==_psort) sortEl.value=_psort;
   // Force string conversion on every render
   CACHE.pedidos = CACHE.pedidos.map(p=>{
     ['clienteNombre','clienteTel','canal','zona','marca','modelo','talla','color','estado','notas','id','trackingNum'].forEach(f=>{p[f]=String(p[f]||'')});
     return p;
   });
-  let pedidos=[...CACHE.pedidos].sort((a,b)=>Number(b.createdAt)-Number(a.createdAt));
+  const sortFn = {
+    reciente: (a,b)=>Number(b.createdAt)-Number(a.createdAt),
+    antiguo:  (a,b)=>Number(a.createdAt)-Number(b.createdAt),
+    precio_desc: (a,b)=>Number(b.precio||0)-Number(a.precio||0),
+    precio_asc:  (a,b)=>Number(a.precio||0)-Number(b.precio||0),
+  }[_psort] || ((a,b)=>Number(b.createdAt)-Number(a.createdAt));
+  let pedidos=[...CACHE.pedidos].sort(sortFn);
   if(_pf!=='todos')pedidos=pedidos.filter(p=>p.estado===_pf);
   if(_ps)pedidos=pedidos.filter(p=>(p.clienteNombre||'').toLowerCase().includes(_ps)||(p.modelo||'').toLowerCase().includes(_ps));
   const tbody=document.getElementById('pedidos-tbody');
@@ -1212,6 +1245,22 @@ function copyTrackingIdx(i){
   const p = window._trackingActivos?.[i];
   if(!p) return;
   copyTrackingLine(p.trackingNum, p.trk_llegadaMiami);
+}
+
+function refreshBtn(btn){
+  // Animate the icon
+  const icon = btn.querySelector('.refresh-icon');
+  if(icon){
+    icon.style.transform='rotate(360deg)';
+    setTimeout(()=>icon.style.transform='rotate(0deg)',400);
+  }
+  btn.disabled=true;
+  btn.style.opacity='.6';
+  loadAll().finally(()=>{
+    btn.disabled=false;
+    btn.style.opacity='1';
+    toast('Datos actualizados ✓','success');
+  });
 }
 
 function copyAllTrackings(){
