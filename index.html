@@ -1127,21 +1127,41 @@ function renderDashboardTracking(){
   const sinTracking = activos.filter(p=>!p.trackingNum);
   let html = '';
   if(conTracking.length){
-    html += conTracking.map(p=>`
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap">
+    html += conTracking.map(p=>{
+      const diasMiami = p.trk_llegadaMiami ? daysBetween(p.fecha, p.trk_llegadaMiami) : null;
+      const miamiColor = diasMiami===null?'var(--text3)':diasMiami>10?'var(--red)':diasMiami>6?'var(--amber)':'var(--green)';
+      return`<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap">
         <div style="flex:1;min-width:0">
           <div style="font-weight:700;font-size:12px">${esc(p.clienteNombre)}</div>
-          <div style="font-size:11px;color:var(--text2)">${esc(p.marca||'')} ${esc(p.modelo||'')} ${p.talla?'T.'+p.talla:''}</div>
-          <div style="font-family:monospace;font-size:11px;color:var(--blue);margin-top:2px;word-break:break-all">${esc(p.trackingNum)}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:1px">${esc(p.marca||'')} ${esc(p.modelo||'')} ${p.talla?'· T.'+p.talla:''}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap">
+            <div style="font-family:monospace;font-size:11px;color:var(--blue);background:var(--surface2);border-radius:4px;padding:2px 7px;word-break:break-all">${esc(p.trackingNum)}</div>
+            <button class="btn btn-sm btn-ghost btn-icon" style="width:22px;height:22px;font-size:10px" onclick="navigator.clipboard?.writeText('${esc(p.trackingNum)}').then(()=>toast('Copiado ✓','success'))" title="Copiar tracking">📋</button>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:5px;flex-wrap:wrap">
+            <span style="font-size:11px;color:var(--text3)">📋 Pedido: <span style="color:var(--text2)">${fmtD(p.fecha)}</span></span>
+            ${p.trk_llegadaMiami?`<span style="font-size:11px;color:var(--text3)">✈️ Miami: <span style="color:var(--orange);font-weight:700">${fmtD(p.trk_llegadaMiami)}</span>${diasMiami!==null?` <span style="color:${miamiColor};font-weight:700">(${diasMiami}d)</span>`:''}` :'<span style="font-size:11px;color:var(--text3)">✈️ Miami: <span style="color:var(--text3)">—</span>'}</span>
+            ${p.trk_llegadaCR?`<span style="font-size:11px;color:var(--text3)">🏠 CR: <span style="color:var(--green);font-weight:700">${fmtD(p.trk_llegadaCR)}</span></span>`:''}
+          </div>
         </div>
-        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
           <span class="${badgeClass(p.estado)}">${p.estado}</span>
-          <button class="btn btn-sm btn-ghost btn-icon" onclick="navigator.clipboard?.writeText('${esc(p.trackingNum)}').then(()=>toast('Copiado ✓','success'))" title="Copiar tracking">📋</button>
+          <span style="font-size:11px;color:var(--text3)">${daysBetween(p.fecha,today())||0}d total</span>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
   if(sinTracking.length){
-    html += `<div style="margin-top:${conTracking.length?'10px':'0'};padding:8px 0;color:var(--text3);font-size:11px">Sin tracking: ${sinTracking.map(p=>`${esc(p.clienteNombre)} — ${esc(p.modelo||'')}`).join(' · ')}</div>`;
+    html += `<div style="margin-top:${conTracking.length?'10px':'0'};padding:8px 0;border-top:${conTracking.length?'1px solid var(--border)':'none'}">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;letter-spacing:.3px">SIN TRACKING REGISTRADO</div>
+      ${sinTracking.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px">
+        <span><strong>${esc(p.clienteNombre)}</strong> · ${esc(p.modelo||'')} ${p.talla?'T.'+p.talla:''}</span>
+        <span style="display:flex;align-items:center;gap:6px">
+          ${p.trk_llegadaMiami?`<span style="font-size:11px;color:var(--orange)">✈️ Miami ${fmtD(p.trk_llegadaMiami)}</span>`:''}
+          <span class="${badgeClass(p.estado)}">${p.estado}</span>
+        </span>
+      </div>`).join('')}
+    </div>`;
   }
   el.innerHTML = html;
 }
@@ -1160,7 +1180,12 @@ function showTrackingPopup(){
           <div>
             <div style="font-weight:700;font-size:13px">${esc(p.clienteNombre)}</div>
             <div style="font-size:11px;color:var(--text2);margin-top:2px">${esc(p.marca||'')} ${esc(p.modelo||'')} ${p.talla?'· T.'+p.talla:''} ${p.color?'· '+p.color:''}</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:1px">${fmtD(p.fecha)} · <span class="${badgeClass(p.estado)}">${p.estado}</span></div>
+            <div style="font-size:11px;color:var(--text3);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap">
+              <span>📋 Pedido: ${fmtD(p.fecha)}</span>
+              ${p.trk_llegadaMiami?`<span>✈️ Miami: <strong style="color:var(--orange)">${fmtD(p.trk_llegadaMiami)}</strong></span>`:'<span style="color:var(--text3)">✈️ Miami: —</span>'}
+              ${p.trk_llegadaCR?`<span>🏠 CR: <strong style="color:var(--green)">${fmtD(p.trk_llegadaCR)}</strong></span>`:''}
+              <span class="${badgeClass(p.estado)}">${p.estado}</span>
+            </div>
           </div>
           <button class="btn btn-sm btn-ghost" onclick="navigator.clipboard?.writeText('${esc(p.trackingNum)}').then(()=>toast('Copiado ✓','success'))">📋 Copiar</button>
         </div>
