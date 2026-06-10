@@ -401,6 +401,7 @@ let API_URL = localStorage.getItem('af_api_url') || DEFAULT_API_URL;
 
 // Cache local (para velocidad y modo offline parcial)
 let CACHE = { pedidos:[], clientes:[], campanas:[], modelos:[], cfg:{} };
+let _loading = false;
 
 function defCfg(){return{adelanto:15000,tcc:510,msg:'¡Hola! Te escribo de ActiveFit Store CR 👟 Tu pedido está listo. El saldo es ₡{saldo}. ¿Cuándo coordinamos?',addrNombre:'Orlando Ugalde Guzman CSTico 1164',addrL1:'8249 NW 36TH ST STE 105',addrL2:'',addrCity:'DORAL, FL 33166-6673',addrPais:'United States',addrTel:'+1 786-354-0830',provNombre:'Monica Carrion Mena',provTel:'60999663',provNotas:''}}
 
@@ -478,47 +479,42 @@ function setSyncStatus(state, msg){
 // LOAD ALL DATA
 // ══════════════════════════════════════════════════
 async function loadAll(){
-  if(!API_URL) return;
+  if(!API_URL || _loading) return;
+  _loading = true;
   setSyncStatus('load','⏳ Cargando…');
   try{
-    // Cargar en paralelo pero con fallback individual para cada hoja
-    const safe = async (sheet) => {
+    // Carga SECUENCIAL para evitar rate limiting de Apps Script
+    const safeGet = async (sheet) => {
       try{ return await api('getAll', sheet); }
-      catch(e){ return {data:[]}; }
+      catch(e){ console.warn('Error cargando '+sheet,e); return {data:[]}; }
     };
-    const [rP,rC,rCp,rM,rCfg] = await Promise.all([
-      safe('pedidos'), safe('clientes'), safe('campanas'),
-      safe('modelos'), safe('cfg')
-    ]);
+    const rP   = await safeGet('pedidos');
+    const rC   = await safeGet('clientes');
+    const rCp  = await safeGet('campanas');
+    const rM   = await safeGet('modelos');
+    const rCfg = await safeGet('cfg');
     CACHE.pedidos  = (rP.data  || []).map(normalizePedido);
-    CACHE.clientes = rC.data  || [];
+    CACHE.clientes = rC.data   || [];
     CACHE.campanas = (rCp.data || []).map(normalizeCampana);
-    CACHE.modelos  = rM.data  || [];
-    // cfg viene como array de {key,value}, convertir a objeto
+    CACHE.modelos  = rM.data   || [];
     const cfgArr = rCfg.data || [];
     const cfgObj = defCfg();
     cfgArr.forEach(row=>{
       if(!row.key) return;
       const numKeys=['adelanto','tcc'];
-      cfgObj[row.key] = numKeys.includes(row.key) ? (Number(row.value)||defCfg()[row.key]) : (row.value||defCfg()[row.key]||'');
+      cfgObj[row.key] = numKeys.includes(row.key)?(Number(row.value)||defCfg()[row.key]):(row.value||defCfg()[row.key]||'');
     });
     CACHE.cfg = cfgObj;
-    // Marcar como conectado si al menos los pedidos cargaron
     setSyncStatus('ok','✓ Google Sheets');
-    // Siempre refrescar la página activa después de cargar
+  }catch(e){
+    console.error('loadAll error',e);
+    setSyncStatus('err','⚠️ Sin conexión');
+  } finally {
+    _loading = false;
     const page = document.querySelector('.page.active')?.id?.replace('page-','');
     if(page) refreshCurrentPage(page);
-  }catch(e){
-    if(CACHE.pedidos.length>0){
-      setSyncStatus('ok','✓ Google Sheets');
-      const page = document.querySelector('.page.active')?.id?.replace('page-','');
-      if(page) refreshCurrentPage(page);
-    } else {
-      setSyncStatus('err','⚠️ Sin conexión');
-    }
   }
 }
-
 function refreshCurrentPage(page){
   ({dashboard:renderDashboard,pedidos:renderPedidos,clientes:renderClientes,metaads:renderAds,catalogo:renderCatalogo,ajustes:renderAjustes})[page]?.();
 }
@@ -666,10 +662,14 @@ function showPage(id){
   document.querySelectorAll('#main-nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll('#main-nav button')[{dashboard:0,pedidos:1,clientes:2,metaads:3,catalogo:4,ajustes:5}[id]].classList.add('active');
-  // Siempre renderizar inmediatamente con lo que hay en cache
-  refreshCurrentPage(id);
-  // Y si el cache está vacío, recargar de Sheets
-  if(CACHE.pedidos.length===0 && CACHE.clientes.length===0 && id!=='ajustes'){
+  // Si hay datos en cache, renderizar inmediatamente
+  if(CACHE.pedidos.length>0 || CACHE.clientes.length>0){
+    refreshCurrentPage(id);
+  } else {
+    // Sin datos: mostrar mensaje de carga y esperar loadAll
+    const loadingMsg = '<tr><td colspan="12" style="text-align:center;padding:36px;color:var(--text3)">⏳ Cargando datos…</td></tr>';
+    const tb = document.getElementById(id==='pedidos'?'pedidos-tbody':id==='clientes'?'clientes-tbody':'ads-tbody');
+    if(tb) tb.innerHTML = loadingMsg;
     loadAll();
   }
 }
