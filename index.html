@@ -505,17 +505,16 @@ async function loadAll(){
     CACHE.cfg = cfgObj;
     // Marcar como conectado si al menos los pedidos cargaron
     setSyncStatus('ok','✓ Google Sheets');
+    // Siempre refrescar la página activa después de cargar
     const page = document.querySelector('.page.active')?.id?.replace('page-','');
     if(page) refreshCurrentPage(page);
   }catch(e){
-    // Si hay datos en cache, mostrar conectado de todos modos
     if(CACHE.pedidos.length>0){
       setSyncStatus('ok','✓ Google Sheets');
       const page = document.querySelector('.page.active')?.id?.replace('page-','');
       if(page) refreshCurrentPage(page);
     } else {
       setSyncStatus('err','⚠️ Sin conexión');
-      toast('Error al cargar: '+e.message,'error');
     }
   }
 }
@@ -667,11 +666,11 @@ function showPage(id){
   document.querySelectorAll('#main-nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll('#main-nav button')[{dashboard:0,pedidos:1,clientes:2,metaads:3,catalogo:4,ajustes:5}[id]].classList.add('active');
-  // Si el cache está vacío, recargar primero y luego renderizar
+  // Siempre renderizar inmediatamente con lo que hay en cache
+  refreshCurrentPage(id);
+  // Y si el cache está vacío, recargar de Sheets
   if(CACHE.pedidos.length===0 && CACHE.clientes.length===0 && id!=='ajustes'){
-    loadAll().then(()=>refreshCurrentPage(id));
-  } else {
-    refreshCurrentPage(id);
+    loadAll();
   }
 }
 
