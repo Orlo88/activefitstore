@@ -1129,7 +1129,9 @@ function renderDashboardTracking(){
   if(conTracking.length){
     html += conTracking.map(p=>{
       const diasMiami = p.trk_llegadaMiami ? daysBetween(p.fecha, p.trk_llegadaMiami) : null;
+      const diasDesdeMiami = p.trk_llegadaMiami ? daysBetween(p.trk_llegadaMiami, today()) : null;
       const miamiColor = diasMiami===null?'var(--text3)':diasMiami>10?'var(--red)':diasMiami>6?'var(--amber)':'var(--green)';
+      const miamiWaitColor = diasDesdeMiami===null?'var(--text3)':diasDesdeMiami>7?'var(--red)':diasDesdeMiami>4?'var(--amber)':'var(--green)';
       return`<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap">
         <div style="flex:1;min-width:0">
           <div style="font-weight:700;font-size:12px">${esc(p.clienteNombre)}</div>
@@ -1140,13 +1142,13 @@ function renderDashboardTracking(){
           </div>
           <div style="display:flex;gap:12px;margin-top:5px;flex-wrap:wrap">
             <span style="font-size:11px;color:var(--text3)">📋 Pedido: <span style="color:var(--text2)">${fmtD(p.fecha)}</span></span>
-            ${p.trk_llegadaMiami?`<span style="font-size:11px;color:var(--text3)">✈️ Miami: <span style="color:var(--orange);font-weight:700">${fmtD(p.trk_llegadaMiami)}</span>${diasMiami!==null?` <span style="color:${miamiColor};font-weight:700">(${diasMiami}d)</span>`:''}` :'<span style="font-size:11px;color:var(--text3)">✈️ Miami: <span style="color:var(--text3)">—</span>'}</span>
+            ${p.trk_llegadaMiami?`<span style="font-size:11px;color:var(--text3)">✈️ Miami: <span style="color:var(--orange);font-weight:700">${fmtD(p.trk_llegadaMiami)}</span>${diasDesdeMiami!==null&&!p.trk_llegadaCR?` <span style="background:var(--amber-soft);color:${miamiWaitColor};font-weight:700;border-radius:8px;padding:1px 6px">${diasDesdeMiami}d esperando</span>`:''}`:'<span style="font-size:11px;color:var(--text3)">✈️ Miami: <span style="color:var(--text3)">—</span>'}</span>
             ${p.trk_llegadaCR?`<span style="font-size:11px;color:var(--text3)">🏠 CR: <span style="color:var(--green);font-weight:700">${fmtD(p.trk_llegadaCR)}</span></span>`:''}
           </div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
           <span class="${badgeClass(p.estado)}">${p.estado}</span>
-          <span style="font-size:11px;color:var(--text3)">${daysBetween(p.fecha,today())||0}d total</span>
+          <span style="font-size:11px;color:var(--text3)">${p.trk_llegadaMiami?daysBetween(p.trk_llegadaMiami,today())+'d desde Miami':'—'}</span>
         </div>
       </div>`;
     }).join('');
