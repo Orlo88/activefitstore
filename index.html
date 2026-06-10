@@ -494,9 +494,12 @@ async function loadAll(){
     const rM   = await safeGet('modelos');
     const rCfg = await safeGet('cfg');
     CACHE.pedidos  = (rP.data  || []).map(normalizePedido);
-    CACHE.clientes = rC.data   || [];
+    CACHE.clientes = (rC.data || []).map(normalizeCliente);
     CACHE.campanas = (rCp.data || []).map(normalizeCampana);
-    CACHE.modelos  = rM.data   || [];
+    CACHE.modelos = (rM.data || []).map(m=>{
+      ['modelo','marca','tallas','img','notas','id'].forEach(f=>{ if(m[f]!==undefined) m[f]=String(m[f]||''); });
+      return m;
+    });
     const cfgArr = rCfg.data || [];
     const cfgObj = defCfg();
     cfgArr.forEach(row=>{
@@ -642,16 +645,31 @@ function normalizeRow(row, numFields, dateFields){
   return r;
 }
 function normalizePedido(p){
-  return normalizeRow(p,
+  const r = normalizeRow(p,
     ['precio','costoUsd','costoEnvio','adelanto','createdAt'],
     ['fecha','trk_envioMarca','trk_llegadaMiami','trk_llegadaCR']
   );
+  // Forzar strings en campos de texto
+  ['clienteNombre','clienteTel','canal','zona','marca','modelo','talla','color','estado','notas','id','clienteId'].forEach(f=>{
+    if(r[f]!==undefined) r[f]=String(r[f]||'');
+  });
+  return r;
 }
 function normalizeCampana(c){
-  return normalizeRow(c,
+  const r = normalizeRow(c,
     ['gasto','alcance','clicks','ventas','ingresoAtrib','createdAt'],
     ['fechaInicio','fechaFin']
   );
+  ['nombre','plataforma','objetivo','estado','notas','id'].forEach(f=>{
+    if(r[f]!==undefined) r[f]=String(r[f]||'');
+  });
+  return r;
+}
+function normalizeCliente(c){
+  ['nombre','tel','canal','zona','notas','id'].forEach(f=>{
+    if(c[f]!==undefined) c[f]=String(c[f]||'');
+  });
+  return c;
 }
 
 // ══════════════════════════════════════════════════
@@ -798,7 +816,7 @@ function renderPedidos(){
     const etapas=[p.fecha,p.trk_envioMarca,p.trk_llegadaMiami,p.trk_llegadaCR];
     const done=etapas.filter(Boolean).length;
     const mini=`<div style="display:flex;align-items:center;gap:2px">${etapas.map((d,i2)=>`<div title="${['Pedido','Marca','Miami','CR'][i2]}${d?' — '+fmtD(d):''}" style="width:11px;height:11px;border-radius:50%;border:1.5px solid ${d?'var(--orange)':i2===done?'var(--amber)':'var(--border2)'};background:${d?'var(--orange-soft)':'var(--surface3)'}"></div>${i2<3?`<div style="width:7px;height:1.5px;background:${d&&etapas[i2+1]?'var(--orange)':'var(--border2)'}"></div>`:''}`).join('')}</div>`;
-    const wa=`https://wa.me/506${(p.clienteTel||'').replace(/\D/g,'')}?text=${encodeURIComponent((CACHE.cfg?.msg||'').replace('{saldo}',saldo.toLocaleString('es-CR')))}`;
+    const wa=`https://wa.me/506${String(p.clienteTel||'').replace(/\D/g,'')}?text=${encodeURIComponent((CACHE.cfg?.msg||'').replace('{saldo}',saldo.toLocaleString('es-CR')))}`;
     const diasMostrar=p.estado==='Entregado'?(daysBetween(p.fecha,p.trk_llegadaCR)||'?')+'d':tot!==null?tot+'d':'—';
     return`<tr>
       <td style="font-size:10px;color:var(--text3)">#${String(i+1).padStart(3,'0')}</td>
@@ -853,7 +871,7 @@ function renderClientes(){
     const ult=cp.sort((a,b)=>Number(b.createdAt)-Number(a.createdAt))[0];
     const totalGastado=cp.filter(p=>p.estado==='Entregado').reduce((s,p)=>s+Number(p.precio||0),0);
     const canal=cp[0]?.canal||c.canal||'';
-    return`<tr><td><div style="font-weight:600">${esc(c.nombre)}</div>${c.notas?`<div style="font-size:10px;color:var(--text3)">${esc(c.notas)}</div>`:''}</td><td>${c.tel?`<a href="https://wa.me/506${c.tel.replace(/\D/g,'')}" target="_blank" style="color:var(--orange)">${esc(c.tel)}</a>`:'—'}</td><td style="font-size:11px">${esc(c.zona||'—')}</td><td>${canal?canalBadge(canal):'—'}</td><td style="font-weight:700;color:var(--orange)">${cp.length}</td><td style="font-weight:700;color:var(--green)">${fmtM(totalGastado)}</td><td style="font-size:11px">${ult?fmtD(ult.fecha):'—'}</td><td><div style="display:flex;gap:3px"><button class="btn btn-sm btn-ghost btn-icon" onclick="editCliente('${c.id}')">✏️</button><button class="btn btn-sm btn-danger btn-icon" onclick="deleteCliente('${c.id}')">🗑️</button></div></td></tr>`;
+    return`<tr><td><div style="font-weight:600">${esc(c.nombre)}</div>${c.notas?`<div style="font-size:10px;color:var(--text3)">${esc(c.notas)}</div>`:''}</td><td>${c.tel?`<a href="https://wa.me/506${String(c.tel||'').replace(/\D/g,'')}" target="_blank" style="color:var(--orange)">${esc(c.tel)}</a>`:'—'}</td><td style="font-size:11px">${esc(c.zona||'—')}</td><td>${canal?canalBadge(canal):'—'}</td><td style="font-weight:700;color:var(--orange)">${cp.length}</td><td style="font-weight:700;color:var(--green)">${fmtM(totalGastado)}</td><td style="font-size:11px">${ult?fmtD(ult.fecha):'—'}</td><td><div style="display:flex;gap:3px"><button class="btn btn-sm btn-ghost btn-icon" onclick="editCliente('${c.id}')">✏️</button><button class="btn btn-sm btn-danger btn-icon" onclick="deleteCliente('${c.id}')">🗑️</button></div></td></tr>`;
   }).join('');
 }
 async function deleteCliente(id){if(!confirm('¿Eliminar cliente?'))return;await deleteFromSheets('clientes',id);CACHE.clientes=CACHE.clientes.filter(c=>c.id!==id);renderClientes();toast('Eliminado')}
