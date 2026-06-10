@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ActiveFit Store CR</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -201,6 +203,7 @@ input[readonly]{background:var(--surface3);cursor:default}
     <button onclick="showPage('metaads')">📣 Meta Ads</button>
     <button onclick="showPage('catalogo')">👟 Catálogo</button>
     <button onclick="showPage('ajustes')">⚙️ Ajustes</button>
+    <button onclick="showPage('calculadora')">🧮 Calculadora</button>
   </nav>
   <span id="sync-status" class="sync-ok">✓ Google Sheets</span>
 </header>
@@ -408,6 +411,102 @@ input[readonly]{background:var(--surface3);cursor:default}
 
   </div>
 </div>
+
+<!-- CALCULADORA -->
+<div id="page-calculadora" class="page">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
+    <div class="page-title">Calculadora de precio</div>
+  </div>
+  <div class="page-sub">Calculá el precio ideal según el tipo de tenis y tu margen objetivo</div>
+
+  <!-- TIPO DE TENIS TABS -->
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px">
+    <button class="filter-btn active" onclick="setTipoTenis('running',this)">🏃 Running Premium</button>
+    <button class="filter-btn" onclick="setTipoTenis('lifestyle',this)">👟 Lifestyle / Casual</button>
+    <button class="filter-btn" onclick="setTipoTenis('limitado',this)">⭐ Edición Limitada</button>
+    <button class="filter-btn" onclick="setTipoTenis('custom',this)">✏️ Personalizado</button>
+  </div>
+
+  <!-- REFERENCIA DE TIPO -->
+  <div id="tipo-ref" class="panel" style="margin-bottom:16px;padding:14px 18px"></div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px">
+
+    <!-- CALCULADORA PRINCIPAL -->
+    <div class="panel">
+      <div class="panel-title" style="margin-bottom:16px">💵 Calcular precio de venta</div>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr">
+
+        <div class="form-group">
+          <label>Precio en página ($)</label>
+          <div style="position:relative">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px">$</span>
+            <input type="number" id="calc-precio-usd" placeholder="67.00" step="0.01" style="padding-left:24px" oninput="calcPrecio()">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Tipo de cambio (₡/$)</label>
+          <input type="number" id="calc-tcc" placeholder="510" oninput="calcPrecio()">
+        </div>
+
+        <div class="form-group">
+          <label>Costo casillero Mónica (₡)</label>
+          <input type="number" id="calc-casillero" placeholder="6200" oninput="calcPrecio()">
+        </div>
+
+        <div class="form-group">
+          <label>Ganancia fija ($) — opcional</label>
+          <div style="position:relative">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px">$</span>
+            <input type="number" id="calc-ganancia-usd" placeholder="30.00" step="0.01" style="padding-left:24px" oninput="onGananciaUsd()">
+          </div>
+        </div>
+
+        <div class="form-group full">
+          <label>— O ganancia por porcentaje (%) sobre precio final</label>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="range" id="calc-pct" min="10" max="60" value="27" oninput="onPctChange()" style="flex:1;accent-color:var(--orange)">
+            <div style="background:var(--orange-soft);border:1px solid rgba(255,94,0,.3);border-radius:8px;padding:4px 12px;font-size:14px;font-weight:900;color:var(--orange);min-width:52px;text-align:center" id="calc-pct-label">27%</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RESULTADO -->
+      <div id="calc-resultado" style="margin-top:16px"></div>
+
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="usarEnPedido()">📦 Usar en nuevo pedido</button>
+        <button class="btn btn-ghost btn-sm" onclick="limpiarCalc()">Limpiar</button>
+      </div>
+    </div>
+
+    <!-- PANEL DERECHO: competitividad + historial -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- ANÁLISIS DE COMPETITIVIDAD -->
+      <div class="panel">
+        <div class="panel-title" style="margin-bottom:12px">📊 Análisis de competitividad</div>
+        <div id="calc-competitividad">
+          <div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Ingresá el precio para ver el análisis</div>
+        </div>
+      </div>
+
+      <!-- HISTORIAL -->
+      <div class="panel" style="flex:1">
+        <div class="panel-header">
+          <div class="panel-title">📋 Cálculos recientes</div>
+          <button class="btn btn-ghost btn-sm" onclick="limpiarHistorial()">Limpiar</button>
+        </div>
+        <div id="calc-historial">
+          <div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">Los cálculos aparecen aquí</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 </main>
 
 <!-- MODAL -->
@@ -556,7 +655,7 @@ async function loadAll(){
   }
 }
 function refreshCurrentPage(page){
-  ({dashboard:renderDashboard,pedidos:renderPedidos,clientes:renderClientes,metaads:renderAds,catalogo:renderCatalogo,ajustes:renderAjustes})[page]?.();
+  ({dashboard:renderDashboard,pedidos:renderPedidos,clientes:renderClientes,metaads:renderAds,catalogo:renderCatalogo,ajustes:renderAjustes,calculadora:renderCalculadora})[page]?.();
 }
 
 async function saveToSheets(sheet, data){
@@ -716,7 +815,7 @@ function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('#main-nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
-  document.querySelectorAll('#main-nav button')[{dashboard:0,pedidos:1,clientes:2,metaads:3,catalogo:4,ajustes:5}[id]].classList.add('active');
+  document.querySelectorAll('#main-nav button')[{dashboard:0,pedidos:1,clientes:2,metaads:3,catalogo:4,ajustes:5,calculadora:6}[id]].classList.add('active');
   // Si hay datos en cache, renderizar inmediatamente
   if(CACHE.pedidos.length>0 || CACHE.clientes.length>0){
     refreshCurrentPage(id);
@@ -1283,6 +1382,331 @@ function copyTracking(){
   navigator.clipboard?.writeText(el.value).then(()=>toast('Tracking copiado ✓','success')).catch(()=>{
     el.select();document.execCommand('copy');toast('Tracking copiado ✓','success');
   });
+}
+
+// ══ CALCULADORA ══
+let _calcHistorial = JSON.parse(localStorage.getItem('af_calc_hist')||'[]');
+let _tipoTenis = 'running';
+let _usandoPct = true; // true=porcentaje, false=monto fijo
+
+const TIPOS_TENIS = {
+  running: {
+    label: '🏃 Running Premium',
+    marcas: 'ASICS, New Balance, Brooks, Hoka',
+    descripcion: 'Alta demanda entre runners. El cliente ya investigó el precio y lo valora.',
+    margenMin: 25, margenMax: 32, margenIdeal: 28,
+    gananciaUsdMin: 28, gananciaUsdMax: 40,
+    competencia: 'Tiendas físicas venden +60% más caro. Podés ser muy competitivo.',
+    color: 'var(--green)'
+  },
+  lifestyle: {
+    label: '👟 Lifestyle / Casual',
+    marcas: 'Nike, Adidas, Vans, Puma, Converse',
+    descripcion: 'Más competitivo, hay más oferta. Menor margen pero mayor rotación.',
+    margenMin: 20, margenMax: 28, margenIdeal: 24,
+    gananciaUsdMin: 20, gananciaUsdMax: 32,
+    competencia: 'Hay más competencia online. Mantenete en el rango recomendado.',
+    color: 'var(--blue)'
+  },
+  limitado: {
+    label: '⭐ Edición Limitada',
+    marcas: 'Nike SB, Jordan, Yeezy, colabs especiales',
+    descripcion: 'Difíciles de conseguir. El cliente paga más por exclusividad.',
+    margenMin: 30, margenMax: 50, margenIdeal: 38,
+    gananciaUsdMin: 40, gananciaUsdMax: 80,
+    competencia: 'Poca competencia directa. Podés cobrar premium sin problema.',
+    color: 'var(--purple)'
+  },
+  custom: {
+    label: '✏️ Personalizado',
+    marcas: 'Cualquier modelo',
+    descripcion: 'Definí tu propio margen según el modelo específico.',
+    margenMin: 15, margenMax: 50, margenIdeal: 27,
+    gananciaUsdMin: 20, gananciaUsdMax: 60,
+    competencia: 'Ajustá según el mercado para ese modelo.',
+    color: 'var(--amber)'
+  }
+};
+
+function renderCalculadora(){
+  const cfg = CACHE.cfg || {};
+  const tccEl = document.getElementById('calc-tcc');
+  if(tccEl && !tccEl.value) tccEl.value = cfg.tcc || 510;
+  const casEl = document.getElementById('calc-casillero');
+  if(casEl && !casEl.value) casEl.value = cfg.casillero || 6200;
+  setTipoTenis(_tipoTenis, null);
+  renderHistorial();
+}
+
+function setTipoTenis(tipo, btn){
+  _tipoTenis = tipo;
+  if(btn){
+    document.querySelectorAll('#page-calculadora .filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  const t = TIPOS_TENIS[tipo];
+  // Actualizar referencia
+  const ref = document.getElementById('tipo-ref');
+  if(ref) ref.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <div style="font-size:13px;font-weight:700;color:${t.color};margin-bottom:4px">${t.label}</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:6px">${t.descripcion}</div>
+        <div style="font-size:11px;color:var(--text3)">Marcas: <span style="color:var(--text2)">${t.marcas}</span></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;flex-shrink:0">
+        <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:8px 12px;text-align:center">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Margen mín</div>
+          <div style="font-size:18px;font-weight:900;color:${t.color}">${t.margenMin}%</div>
+        </div>
+        <div style="background:var(--orange-soft);border:1px solid rgba(255,94,0,.2);border-radius:var(--radius-sm);padding:8px 12px;text-align:center">
+          <div style="font-size:10px;color:var(--orange);text-transform:uppercase;letter-spacing:.5px">Ideal</div>
+          <div style="font-size:18px;font-weight:900;color:var(--orange)">${t.margenIdeal}%</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:8px 12px;text-align:center">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Margen máx</div>
+          <div style="font-size:18px;font-weight:900;color:${t.color}">${t.margenMax}%</div>
+        </div>
+      </div>
+    </div>`;
+  // Set slider to ideal margin for this type
+  const slider = document.getElementById('calc-pct');
+  const sliderLabel = document.getElementById('calc-pct-label');
+  if(slider){ slider.value = t.margenIdeal; }
+  if(sliderLabel){ sliderLabel.textContent = t.margenIdeal+'%'; }
+  // Clear fixed ganancia when changing type
+  const ganEl = document.getElementById('calc-ganancia-usd');
+  if(ganEl) ganEl.value = '';
+  _usandoPct = true;
+  calcPrecio();
+}
+
+function onPctChange(){
+  _usandoPct = true;
+  const pct = document.getElementById('calc-pct')?.value || 27;
+  const lbl = document.getElementById('calc-pct-label');
+  if(lbl) lbl.textContent = pct+'%';
+  // Clear fixed ganancia
+  const ganEl = document.getElementById('calc-ganancia-usd');
+  if(ganEl) ganEl.value = '';
+  calcPrecio();
+}
+
+function onGananciaUsd(){
+  _usandoPct = false;
+  calcPrecio();
+}
+
+function calcPrecio(){
+  const precioUsd = Number(document.getElementById('calc-precio-usd')?.value||0);
+  const tcc       = Number(document.getElementById('calc-tcc')?.value||510);
+  const casillero = Number(document.getElementById('calc-casillero')?.value||0);
+  const pct       = Number(document.getElementById('calc-pct')?.value||27);
+  const ganFijaUsd= Number(document.getElementById('calc-ganancia-usd')?.value||0);
+  const el        = document.getElementById('calc-resultado');
+  const compEl    = document.getElementById('calc-competitividad');
+  if(!el) return;
+  if(!precioUsd){ el.innerHTML=''; if(compEl) compEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Ingresá el precio para ver el análisis</div>'; return; }
+
+  const costoCrc = Math.round(precioUsd * tcc) + casillero;
+
+  let totalVenta, gananciaCrc, gananciaUsd, margenReal;
+
+  if(_usandoPct || !ganFijaUsd){
+    // Calcular precio desde porcentaje: precio = costo / (1 - pct/100)
+    totalVenta  = Math.round(costoCrc / (1 - pct/100));
+    gananciaCrc = totalVenta - costoCrc;
+    gananciaUsd = gananciaCrc / tcc;
+    margenReal  = pct;
+  } else {
+    // Calcular desde ganancia fija en USD
+    gananciaCrc = Math.round(ganFijaUsd * tcc);
+    totalVenta  = costoCrc + gananciaCrc;
+    gananciaUsd = ganFijaUsd;
+    margenReal  = totalVenta > 0 ? Math.round((gananciaCrc/totalVenta)*100) : 0;
+    // Sync slider
+    const slider = document.getElementById('calc-pct');
+    const sliderLabel = document.getElementById('calc-pct-label');
+    if(slider){ slider.value = Math.min(60, Math.max(10, margenReal)); }
+    if(sliderLabel){ sliderLabel.textContent = margenReal+'%'; }
+  }
+
+  // Precio redondeado bonito
+  const precioRedondo = Math.ceil(totalVenta/500)*500;
+  const t = TIPOS_TENIS[_tipoTenis];
+  const gColor = margenReal >= t.margenMin ? 'var(--green)' : margenReal >= t.margenMin*0.8 ? 'var(--amber)' : 'var(--red)';
+  const margenStatus = margenReal >= t.margenIdeal ? '✅ Excelente' : margenReal >= t.margenMin ? '👍 Bueno' : '⚠️ Bajo';
+
+  el.innerHTML = `
+    <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-lg);overflow:hidden">
+      <div style="background:var(--orange-soft);border-bottom:1px solid rgba(255,94,0,.2);padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--orange);margin-bottom:2px">Precio de venta sugerido</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:40px;font-weight:900;color:var(--orange);line-height:1">${fmtM(totalVenta)}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:2px">Redondeado</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:var(--text2)">${fmtM(precioRedondo)}</div>
+        </div>
+      </div>
+      <div style="padding:12px 16px;display:flex;flex-direction:column;gap:5px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--text2)">Precio página ($${precioUsd} × ₡${tcc})</span><span>${fmtM(Math.round(precioUsd*tcc))}</span>
+        </div>
+        ${casillero?`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--text2)">Casillero Mónica</span><span>${fmtM(casillero)}</span>
+        </div>`:''}
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--text2)">Costo total</span><span style="font-weight:700">${fmtM(costoCrc)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--text2)">Ganancia en dólares</span><span style="color:${gColor};font-weight:700">$${gananciaUsd.toFixed(2)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;padding:5px 0">
+          <span>Margen real</span>
+          <span style="color:${gColor}">${margenReal}% ${margenStatus}</span>
+        </div>
+      </div>
+    </div>`;
+
+  // Análisis competitividad
+  if(compEl){
+    const tiendaFisica = Math.round(costoCrc * 1.65);
+    const tiendaOnline = Math.round(costoCrc * 1.45);
+    const ahorro = tiendaFisica - totalVenta;
+    const pctMasBarato = Math.round((ahorro/tiendaFisica)*100);
+    const competColor = pctMasBarato >= 25?'var(--green)':pctMasBarato>=15?'var(--amber)':'var(--red)';
+    const t = TIPOS_TENIS[_tipoTenis];
+
+    compEl.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">${t.competencia}</div>
+        <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
+            <span style="color:var(--text2)">Tienda física CR (~65%)</span>
+            <span style="color:var(--red);font-weight:700;text-decoration:line-through">${fmtM(tiendaFisica)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
+            <span style="color:var(--text2)">Tienda online CR (~45%)</span>
+            <span style="color:var(--amber);font-weight:700">${fmtM(tiendaOnline)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;border-top:1px solid var(--border);padding-top:6px">
+            <span style="color:var(--text2)"><strong>Tu precio</strong></span>
+            <span style="color:var(--orange);font-weight:900">${fmtM(totalVenta)}</span>
+          </div>
+        </div>
+        <div style="background:${competColor === 'var(--green)' ? 'var(--green-soft)' : competColor === 'var(--amber)' ? 'var(--amber-soft)' : 'var(--red-soft)'};border-radius:var(--radius-sm);padding:10px 12px;text-align:center">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:2px">Tu precio vs tienda física</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:${competColor}">${pctMasBarato}% más barato</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">El cliente ahorra ${fmtM(ahorro)}</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:8px 12px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Margen recomendado para ${t.label}</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="flex:1;background:var(--border);border-radius:4px;height:6px;overflow:hidden">
+              <div style="height:100%;border-radius:4px;background:${gColor};width:${Math.min(100,Math.round((margenReal/t.margenMax)*100))}%"></div>
+            </div>
+            <span style="font-size:11px;font-weight:700;color:${gColor}">${margenReal}% / ${t.margenMax}%</span>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // Auto-save
+  clearTimeout(window._calcTimer);
+  window._calcTimer = setTimeout(()=>guardarCalc(precioUsd, gananciaUsd.toFixed(2), tcc, casillero, totalVenta, _tipoTenis, margenReal), 1200);
+}
+
+function guardarCalc(precioUsd, gananciaUsd, tcc, casillero, totalVenta, tipo, margen){
+  if(!precioUsd || !totalVenta) return;
+  const entry = { id:genId(), precioUsd, gananciaUsd, tcc, casillero, totalVenta, tipo, margen, fecha:today(), ts:Date.now() };
+  _calcHistorial.unshift(entry);
+  if(_calcHistorial.length > 20) _calcHistorial = _calcHistorial.slice(0,20);
+  localStorage.setItem('af_calc_hist', JSON.stringify(_calcHistorial));
+  renderHistorial();
+}
+
+function renderHistorial(){
+  const el = document.getElementById('calc-historial');
+  if(!el) return;
+  if(!_calcHistorial.length){
+    el.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">Los cálculos aparecen aquí</div>';
+    return;
+  }
+  const t = TIPOS_TENIS;
+  el.innerHTML = _calcHistorial.map((h,i)=>{
+    const tipo = t[h.tipo]||t.custom;
+    return`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);gap:8px;cursor:pointer" onclick="cargarCalc(${i})">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+          <span style="font-size:13px;font-weight:700;color:var(--orange)">${fmtM(h.totalVenta)}</span>
+          <span style="font-size:10px;background:var(--surface3);border-radius:10px;padding:1px 7px;color:var(--text3)">${h.margen}%</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2)">$${h.precioUsd} · T/C ${h.tcc}${h.casillero?' · cas. '+fmtM(h.casillero):''}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:1px">${tipo.label} · ${fmtD(h.fecha)}</div>
+      </div>
+      <div style="display:flex;gap:3px;flex-shrink:0">
+        <button class="btn btn-sm btn-ghost btn-icon" onclick="event.stopPropagation();cargarCalc(${i})" title="Cargar">↩️</button>
+        <button class="btn btn-sm btn-danger btn-icon" onclick="event.stopPropagation();borrarCalc(${i})" title="Borrar">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function cargarCalc(i){
+  const h = _calcHistorial[i];
+  if(!h) return;
+  const f=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||''};
+  f('calc-precio-usd', h.precioUsd);
+  f('calc-ganancia-usd', h.gananciaUsd);
+  f('calc-tcc', h.tcc);
+  f('calc-casillero', h.casillero||'');
+  if(h.tipo) setTipoTenis(h.tipo, null);
+  _usandoPct = false;
+  calcPrecio();
+  toast('Cálculo cargado','success');
+}
+
+function borrarCalc(i){
+  _calcHistorial.splice(i,1);
+  localStorage.setItem('af_calc_hist', JSON.stringify(_calcHistorial));
+  renderHistorial();
+}
+
+function limpiarHistorial(){
+  if(!confirm('¿Borrar todos los cálculos?')) return;
+  _calcHistorial=[];
+  localStorage.setItem('af_calc_hist','[]');
+  renderHistorial();
+}
+
+function limpiarCalc(){
+  ['calc-precio-usd','calc-ganancia-usd','calc-casillero'].forEach(id=>{
+    const e=document.getElementById(id);if(e)e.value='';
+  });
+  _usandoPct=true;
+  const res=document.getElementById('calc-resultado');
+  const comp=document.getElementById('calc-competitividad');
+  if(res)res.innerHTML='';
+  if(comp)comp.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Ingresá el precio para ver el análisis</div>';
+  setTipoTenis(_tipoTenis, null);
+}
+
+function usarEnPedido(){
+  const precioUsd  = Number(document.getElementById('calc-precio-usd')?.value||0);
+  const tcc        = Number(document.getElementById('calc-tcc')?.value||510);
+  const casillero  = Number(document.getElementById('calc-casillero')?.value||0);
+  const pct        = Number(document.getElementById('calc-pct')?.value||27);
+  const ganFijaUsd = Number(document.getElementById('calc-ganancia-usd')?.value||0);
+  const costoCrc   = Math.round(precioUsd*tcc)+casillero;
+  let totalVenta;
+  if(_usandoPct||!ganFijaUsd){
+    totalVenta = Math.round(costoCrc/(1-pct/100));
+  } else {
+    totalVenta = costoCrc + Math.round(ganFijaUsd*tcc);
+  }
+  showPage('pedidos');
+  openModal('pedido',{ costoUsd:precioUsd, costoEnvio:casillero, precio:totalVenta });
 }
 
 function toast(msg,type=''){const c=document.getElementById('toast-container');const t=document.createElement('div');t.className='toast '+(type||'');t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3200)}
