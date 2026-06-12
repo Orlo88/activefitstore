@@ -571,7 +571,10 @@ El proceso es simple: elegís, apartás con un adelanto y en menos de 15 días h
       <button class="btn btn-primary btn-sm" onclick="waCopiar('wa-preview-4')">📋 Copiar</button>
     </div>
     <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:12px">
-      <div class="form-group"><label>Nombre cliente</label><input type="text" id="wa4-nombre" placeholder="Jorge Vargas Salazar" oninput="waRender4()"></div>
+      <div class="form-group"><label>Nombre cliente</label>
+        <datalist id="wa-clientes-list"></datalist>
+        <input type="text" id="wa4-nombre" placeholder="Jorge Vargas Salazar" list="wa-clientes-list" autocomplete="off" oninput="waRender4();waAutoFill('4',this.value)">
+      </div>
       <div class="form-group"><label>Dirección / zona</label><input type="text" id="wa4-dir" placeholder="Cartago Centro" oninput="waRender4()"></div>
       <div class="form-group"><label>Total (₡)</label><input type="text" id="wa4-total" placeholder="117000" oninput="waRender4()"></div>
       <div class="form-group"><label>Adelanto (₡)</label><input type="text" id="wa4-adelanto" placeholder="20000" oninput="waRender4()"></div>
@@ -589,7 +592,9 @@ El proceso es simple: elegís, apartás con un adelanto y en menos de 15 días h
       <button class="btn btn-primary btn-sm" onclick="waCopiar('wa-preview-5')">📋 Copiar</button>
     </div>
     <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:12px">
-      <div class="form-group"><label>Nombre cliente</label><input type="text" id="wa5-nombre" placeholder="María" oninput="waRender5()"></div>
+      <div class="form-group"><label>Nombre cliente</label>
+        <input type="text" id="wa5-nombre" placeholder="María" list="wa-clientes-list" autocomplete="off" oninput="waRender5();waAutoFill('5',this.value)">
+      </div>
       <div class="form-group"><label>Marca</label><input type="text" id="wa5-marca" placeholder="Nike" oninput="waRender5()"></div>
       <div class="form-group"><label>Modelo</label><input type="text" id="wa5-modelo" placeholder="Air Max 90" oninput="waRender5()"></div>
       <div class="form-group"><label>Talla US</label><input type="text" id="wa5-talla" placeholder="8" oninput="waRender5()"></div>
@@ -612,7 +617,9 @@ El proceso es simple: elegís, apartás con un adelanto y en menos de 15 días h
       <button class="btn btn-primary btn-sm" onclick="waCopiar('wa-preview-6')">📋 Copiar</button>
     </div>
     <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:12px">
-      <div class="form-group"><label>Nombre cliente</label><input type="text" id="wa6-nombre" placeholder="María" oninput="waRender6()"></div>
+      <div class="form-group"><label>Nombre cliente</label>
+        <input type="text" id="wa6-nombre" placeholder="María" list="wa-clientes-list" autocomplete="off" oninput="waRender6();waAutoFill('6',this.value)">
+      </div>
       <div class="form-group"><label>Marca</label><input type="text" id="wa6-marca" placeholder="Nike" oninput="waRender6()"></div>
       <div class="form-group"><label>Modelo</label><input type="text" id="wa6-modelo" placeholder="Air Max 90" oninput="waRender6()"></div>
       <div class="form-group"><label>Talla US</label><input type="text" id="wa6-talla" placeholder="8" oninput="waRender6()"></div>
@@ -1840,10 +1847,91 @@ function toast(msg,type=''){const c=document.getElementById('toast-container');c
 // ══════════════════════════════════════════════════
 
 function renderMensajes(){
+  waUpdateClientesList();
   waRender2();
   wa4Init();
   waRender5();
   waRender6();
+}
+
+// Puebla el datalist con clientes registrados
+function waUpdateClientesList(){
+  const dl = document.getElementById('wa-clientes-list');
+  if(!dl) return;
+  const clientes = [...CACHE.clientes].sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''));
+  dl.innerHTML = clientes.map(c=>`<option value="${esc(c.nombre)}" data-tel="${esc(c.tel||'')}" data-zona="${esc(c.zona||'')}">`).join('');
+}
+
+// Cuando el usuario escribe y coincide exactamente con un cliente, auto-rellena campos relacionados
+function waAutoFill(msg, nombreEscrito){
+  const cliente = CACHE.clientes.find(c=>(c.nombre||'').toLowerCase()===nombreEscrito.toLowerCase());
+  if(!cliente) return;
+
+  if(msg==='4'){
+    // En msg4 auto-rellena la zona/dirección si está vacía
+    const dirEl = document.getElementById('wa4-dir');
+    if(dirEl && !dirEl.value) { dirEl.value = cliente.zona||''; waRender4(); }
+    // Calcular saldo del último pedido activo de este cliente
+    const pedidos = CACHE.pedidos.filter(p=>p.clienteId===cliente.id&&(p.estado==='En trámite'||p.estado==='Listo para envío'));
+    if(pedidos.length){
+      const p = pedidos.sort((a,b)=>Number(b.createdAt)-Number(a.createdAt))[0];
+      const total = Number(p.precio||0);
+      const adelanto = Number(p.adelanto||0);
+      const saldo = total - adelanto;
+      const totalEl = document.getElementById('wa4-total');
+      const adelantoEl = document.getElementById('wa4-adelanto');
+      const saldoEl = document.getElementById('wa4-saldo');
+      if(totalEl && !totalEl.value) totalEl.value = total;
+      if(adelantoEl && !adelantoEl.value) adelantoEl.value = adelanto;
+      if(saldoEl && !saldoEl.value) saldoEl.value = saldo;
+      // Pre-cargar producto del pedido
+      if(_wa4Productos.length===1 && !_wa4Productos[0].marca){
+        _wa4Productos[0] = {
+          marca: p.marca||'', modelo: p.modelo||'', color: p.color||'',
+          talla: p.talla||'', genero: 'Hombre', precio: String(p.precio||'')
+        };
+        wa4RenderProductos();
+      }
+      waRender4();
+      toast(`Datos de ${cliente.nombre} cargados ✓`,'success');
+    }
+  }
+
+  if(msg==='5'){
+    // Auto-rellena dirección y datos del último pedido listo
+    const dirEl = document.getElementById('wa5-dir');
+    if(dirEl && !dirEl.value) { dirEl.value = cliente.zona||''; }
+    const pedidos = CACHE.pedidos.filter(p=>p.clienteId===cliente.id&&p.estado==='Listo para envío');
+    if(pedidos.length){
+      const p = pedidos.sort((a,b)=>Number(b.createdAt)-Number(a.createdAt))[0];
+      const marcaEl = document.getElementById('wa5-marca');
+      const modeloEl = document.getElementById('wa5-modelo');
+      const tallaEl = document.getElementById('wa5-talla');
+      if(marcaEl && !marcaEl.value) marcaEl.value = p.marca||'';
+      if(modeloEl && !modeloEl.value) modeloEl.value = p.modelo||'';
+      if(tallaEl && !tallaEl.value) tallaEl.value = p.talla||'';
+      toast(`Datos de ${cliente.nombre} cargados ✓`,'success');
+    }
+    waRender5();
+  }
+
+  if(msg==='6'){
+    // Auto-rellena zona y saldo del último pedido
+    const pedidos = CACHE.pedidos.filter(p=>p.clienteId===cliente.id&&(p.estado==='En trámite'||p.estado==='Listo para envío'));
+    if(pedidos.length){
+      const p = pedidos.sort((a,b)=>Number(b.createdAt)-Number(a.createdAt))[0];
+      const saldoEl = document.getElementById('wa6-saldo');
+      const marcaEl = document.getElementById('wa6-marca');
+      const modeloEl = document.getElementById('wa6-modelo');
+      const tallaEl = document.getElementById('wa6-talla');
+      if(saldoEl && !saldoEl.value) saldoEl.value = Number(p.precio||0)-Number(p.adelanto||0);
+      if(marcaEl && !marcaEl.value) marcaEl.value = p.marca||'';
+      if(modeloEl && !modeloEl.value) modeloEl.value = p.modelo||'';
+      if(tallaEl && !tallaEl.value) tallaEl.value = p.talla||'';
+      toast(`Datos de ${cliente.nombre} cargados ✓`,'success');
+    }
+    waRender6();
+  }
 }
 
 function waCopiar(id){
