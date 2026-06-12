@@ -1975,8 +1975,7 @@ const DIS_MARCAS_CONFIG={
     icon:'🔷', color:'#e53935', textColor:'#fff',
     url:(modelo,talla,genero,color)=>{
       const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
-      const g=genero==='women'?'gender=women&':genero==='men'?'gender=men&':'';
-      return `https://www.reebok.com/us/search?${g}q=${q}`;
+      return `https://www.reebok.com/search?q=${q}`;
     }
   },
   'New Balance':{
@@ -1991,8 +1990,8 @@ const DIS_MARCAS_CONFIG={
     icon:'🔶', color:'#003da5', textColor:'#fff',
     url:(modelo,talla,genero,color)=>{
       const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
-      const g=genero==='women'?'/women':genero==='men'?'/men':'';
-      return `https://www.asics.com/us/en-us${g}/search/?q=${q}`;
+      const g=genero==='women'?'&prefn1=gender&prefv1=Women':genero==='men'?'&prefn1=gender&prefv1=Men':'';
+      return `https://www.asics.com/us/en-us/search/?q=${q}${g}`;
     }
   },
   'Under Armour':{
@@ -2015,7 +2014,11 @@ const DIS_MARCAS_CONFIG={
     icon:'🐊', color:'#009a44', textColor:'#fff',
     url:(modelo,talla,genero,color)=>{
       const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
-      return `https://www.crocs.com/search?q=${q}`;
+      const g=genero==='women'?'/c/women/footwear':genero==='men'?'/c/men/footwear':genero==='kids'?'/c/kids/footwear':'/c/footwear';
+      // Si hay modelo específico, ir a búsqueda; si no, ir a categoría por género
+      return modelo
+        ? `https://www.crocs.com/search?q=${q}&lang=en_US`
+        : `https://www.crocs.com${g}/clogs`;
     }
   },
   'TYR':{
