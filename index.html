@@ -203,6 +203,7 @@ input[readonly]{background:var(--surface3);cursor:default}
     <button onclick="showPage('metaads')">📣 Meta Ads</button>
     <button onclick="showPage('catalogo')">👟 Catálogo</button>
     <button onclick="showPage('ajustes')">⚙️ Ajustes</button>
+    <button onclick="showPage('impuestos')">🧾 Impuestos</button>
     <button onclick="showPage('calculadora')">🧮 Calculadora</button>
   </nav>
   <span id="sync-status" class="sync-ok">✓ Google Sheets</span>
@@ -507,6 +508,80 @@ input[readonly]{background:var(--surface3);cursor:default}
     </div>
   </div>
 </div>
+<!-- IMPUESTOS -->
+<div id="page-impuestos" class="page">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
+    <div class="page-title">🧾 Desglose de Impuestos</div>
+    <button class="btn btn-ghost btn-sm" onclick="limpiarImpuestos()" style="gap:5px">🗑️ Limpiar todo</button>
+  </div>
+  <div class="page-sub">Distribuí impuestos y cargos de una compra proporcionalmente al costo de cada producto — resultado en $ y ₡</div>
+
+  <div class="panel">
+    <div class="panel-header" style="margin-bottom:12px"><div class="panel-title">⚙️ Datos de la compra</div></div>
+    <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+      <div class="form-group">
+        <label>Tipo de cambio (₡ por $1)</label>
+        <input type="number" id="imp-tcc" placeholder="Ej. 510" step="0.01" oninput="calcImpuestos()">
+      </div>
+      <div class="form-group">
+        <label>Total impuestos ($)</label>
+        <input type="number" id="imp-total-imp" placeholder="Ej. 45.00" step="0.01" oninput="calcImpuestos()">
+      </div>
+      <div class="form-group">
+        <label>Otros cargos ($) <span style="color:var(--text3);font-weight:400;text-transform:none;font-size:9px">opcional</span></label>
+        <input type="number" id="imp-otros" placeholder="Ej. envío, handling" step="0.01" oninput="calcImpuestos()">
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">📦 Líneas de productos</div>
+      <button class="btn btn-primary btn-sm" onclick="addLineaImpuesto()">+ Agregar línea</button>
+    </div>
+    <div id="imp-empty" style="text-align:center;padding:32px;color:var(--text3)">
+      Hacé clic en <strong style="color:var(--text2)">+ Agregar línea</strong> para comenzar.
+    </div>
+    <div class="table-wrap" id="imp-table-wrap" style="display:none">
+      <table>
+        <thead>
+          <tr>
+            <th style="min-width:200px">Descripción</th>
+            <th style="min-width:90px;text-align:right">Costo ($)</th>
+            <th style="min-width:65px;text-align:right">%</th>
+            <th style="min-width:100px;text-align:right">Impuesto ($)</th>
+            <th style="min-width:90px;text-align:right">Otros ($)</th>
+            <th style="min-width:105px;text-align:right">Total ($)</th>
+            <th style="min-width:115px;text-align:right">Total (₡)</th>
+            <th style="width:36px"></th>
+          </tr>
+        </thead>
+        <tbody id="imp-tbody"></tbody>
+        <tfoot>
+          <tr style="border-top:2px solid var(--border2)">
+            <td style="font-weight:700;color:var(--text);padding:10px">TOTALES</td>
+            <td id="imp-tot-costo" style="font-weight:700;color:var(--orange);text-align:right;padding:10px">$0.00</td>
+            <td id="imp-tot-pct"   style="font-weight:700;color:var(--text2);text-align:right;padding:10px">100%</td>
+            <td id="imp-tot-imp"   style="font-weight:700;color:var(--amber);text-align:right;padding:10px">$0.00</td>
+            <td id="imp-tot-otros" style="font-weight:700;color:var(--blue);text-align:right;padding:10px">—</td>
+            <td id="imp-tot-final" style="font-weight:700;color:var(--green);text-align:right;padding:10px">$0.00</td>
+            <td id="imp-tot-crc"   style="font-weight:700;color:var(--green);text-align:right;padding:10px">₡0</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div id="imp-resumen-panel" class="panel" style="display:none">
+    <div class="panel-header">
+      <div class="panel-title">✅ Resumen por producto</div>
+      <button class="btn btn-ghost btn-sm" onclick="copiarResumenImpuestos()">📋 Copiar resumen</button>
+    </div>
+    <div id="imp-resumen-cards" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+</div>
+
 </main>
 
 <!-- MODAL -->
@@ -655,7 +730,7 @@ async function loadAll(){
   }
 }
 function refreshCurrentPage(page){
-  ({dashboard:renderDashboard,pedidos:renderPedidos,clientes:renderClientes,metaads:renderAds,catalogo:renderCatalogo,ajustes:renderAjustes,calculadora:renderCalculadora})[page]?.();
+  ({dashboard:renderDashboard,pedidos:renderPedidos,clientes:renderClientes,metaads:renderAds,catalogo:renderCatalogo,ajustes:renderAjustes,impuestos:renderImpuestos,calculadora:renderCalculadora})[page]?.();
 }
 
 async function saveToSheets(sheet, data){
@@ -783,7 +858,7 @@ function normalizeRow(row, numFields, dateFields){
 function normalizePedido(p){
   const r = normalizeRow(p,
     ['precio','costoUsd','costoEnvio','adelanto','createdAt'],
-    ['fecha','trk_envioMarca','trk_llegadaMiami','trk_llegadaCR']
+    ['fecha','trk_pedidoMarca','trk_envioMarca','trk_llegadaMiami','trk_llegadaCR']
   );
   // Forzar strings en campos de texto
   ['clienteNombre','clienteTel','canal','zona','marca','modelo','talla','color','estado','notas','id','clienteId','trackingNum'].forEach(f=>{
@@ -815,7 +890,7 @@ function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('#main-nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
-  document.querySelectorAll('#main-nav button')[{dashboard:0,pedidos:1,clientes:2,metaads:3,catalogo:4,ajustes:5,calculadora:6}[id]].classList.add('active');
+  document.querySelectorAll('#main-nav button')[{dashboard:0,pedidos:1,clientes:2,metaads:3,catalogo:4,ajustes:5,impuestos:6,calculadora:7}[id]].classList.add('active');
   // Si hay datos en cache, renderizar inmediatamente
   if(CACHE.pedidos.length>0 || CACHE.clientes.length>0){
     refreshCurrentPage(id);
@@ -969,9 +1044,9 @@ function renderPedidos(){
     const mini=`<div style="display:flex;align-items:center;gap:2px">${etapas.map((d,i2)=>`<div title="${['Pedido','Marca','Miami','CR'][i2]}${d?' — '+fmtD(d):''}" style="width:11px;height:11px;border-radius:50%;border:1.5px solid ${d?'var(--orange)':i2===done?'var(--amber)':'var(--border2)'};background:${d?'var(--orange-soft)':'var(--surface3)'}"></div>${i2<3?`<div style="width:7px;height:1.5px;background:${d&&etapas[i2+1]?'var(--orange)':'var(--border2)'}"></div>`:''}`).join('')}</div>`;
     const wa=`https://wa.me/506${String(p.clienteTel||'').replace(/\D/g,'')}?text=${encodeURIComponent((CACHE.cfg?.msg||'').replace('{saldo}',saldo.toLocaleString('es-CR')))}`;
     const diasMostrar=p.estado==='Entregado'?(daysBetween(p.fecha,p.trk_llegadaCR)||'?')+'d':tot!==null?tot+'d':'—';
-    return`<tr>
+    return`<tr style="cursor:pointer" onclick="viewPedido('${p.id}')" title="Clic para ver detalle">
       <td style="font-size:10px;color:var(--text3)">#${String(i+1).padStart(3,'0')}</td>
-      <td><div style="font-weight:600;font-size:12px">${esc(p.clienteNombre)}</div>${p.clienteTel?`<a href="${wa}" target="_blank" style="font-size:10px;color:var(--orange)">${esc(p.clienteTel)}</a>`:''}</td>
+      <td><div style="font-weight:600;font-size:12px">${esc(p.clienteNombre)}</div>${p.clienteTel?`<a href="${wa}" target="_blank" style="font-size:10px;color:var(--orange)" onclick="event.stopPropagation()">${esc(p.clienteTel)}</a>`:''}</td>
       <td><div style="font-size:12px">${esc(p.modelo)}</div><div style="font-size:10px;color:var(--text3)">${esc(p.marca||'')} ${p.talla?'T.'+p.talla:''} ${p.color?'· '+p.color:''}</div></td>
       <td style="font-weight:700">${fmtM(p.precio)}</td>
       <td style="font-size:11px;color:var(--text3)">${fmtM(g.totalCosto)}<div style="font-size:10px">${p.costoUsd?'$'+p.costoUsd:''} ${p.costoEnvio?'+ '+fmtM(p.costoEnvio):''}</div></td>
@@ -979,10 +1054,11 @@ function renderPedidos(){
       <td><span class="saldo-tag">${fmtM(saldo)}</span></td>
       <td>${p.canal?canalBadge(p.canal):'—'}</td>
       <td><span class="${badgeClass(p.estado)}">${p.estado}</span></td>
-      <td>${p.trackingNum?`<div style="display:flex;align-items:center;gap:4px"><span style="font-family:monospace;font-size:10px;color:var(--blue);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(p.trackingNum)}">${esc(p.trackingNum)}</span><button class="btn btn-sm btn-ghost btn-icon" style="width:22px;height:22px;font-size:10px" onclick="copyTrackingLine('${esc(p.trackingNum)}','${p.trk_llegadaMiami||''}')" title="Copiar tracking + fecha Miami">📋</button></div>`:'<span style="color:var(--text3);font-size:11px">—</span>'}</td>
+      <td onclick="event.stopPropagation()">${p.trackingNum?`<div style="display:flex;align-items:center;gap:4px"><span style="font-family:monospace;font-size:10px;color:var(--blue);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(p.trackingNum)}">${esc(p.trackingNum)}</span><button class="btn btn-sm btn-ghost btn-icon" style="width:22px;height:22px;font-size:10px" onclick="copyTrackingLine('${esc(p.trackingNum)}','${p.trk_llegadaMiami||''}')" title="Copiar tracking + fecha Miami">📋</button></div>`:'<span style="color:var(--text3);font-size:11px">—</span>'}</td>
       <td>${mini}</td>
       <td style="font-weight:700;color:${dColor};font-size:11px">${diasMostrar}</td>
-      <td><div style="display:flex;gap:2px">
+      <td onclick="event.stopPropagation()"><div style="display:flex;gap:2px">
+        <button class="btn btn-sm btn-ghost btn-icon" onclick="viewPedido('${p.id}')" title="Ver detalle">👁️</button>
         <button class="btn btn-sm btn-ghost btn-icon" onclick="editPedido('${p.id}')">✏️</button>
         <button class="btn btn-sm btn-ghost btn-icon" onclick="quickStatus('${p.id}')">🔄</button>
         <button class="btn btn-sm btn-danger btn-icon" onclick="deletePedido('${p.id}')">🗑️</button>
@@ -1142,7 +1218,7 @@ function openModal(type,data={}){
 <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:14px">
   <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Edita las fechas conforme avanza el pedido.</div>
   <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(145px,1fr))">
-    <div class="form-group"><label>① Pedido a marca</label><input type="date" id="f-t0" value="${data.fecha||today()}" oninput="recalcTrk()"><div id="td0" style="font-size:10px;color:var(--text3);margin-top:2px"></div></div>
+    <div class="form-group"><label>① Pedido a marca</label><input type="date" id="f-t0" value="${data.trk_pedidoMarca||''}" oninput="recalcTrk()"><div id="td0" style="font-size:10px;color:var(--text3);margin-top:2px"></div></div>
     <div class="form-group"><label>② Marca envía</label><input type="date" id="f-t1" value="${data.trk_envioMarca||''}" oninput="recalcTrk()"><div id="td1" style="font-size:10px;color:var(--text3);margin-top:2px"></div></div>
     <div class="form-group"><label>③ Llega a Miami</label><input type="date" id="f-t2" value="${data.trk_llegadaMiami||''}" oninput="recalcTrk()"><div id="td2" style="font-size:10px;color:var(--text3);margin-top:2px"></div></div>
     <div class="form-group"><label>④ Monica entrega CR</label><input type="date" id="f-t3" value="${data.trk_llegadaCR||''}" oninput="recalcTrk()"><div id="td3" style="font-size:10px;color:var(--text3);margin-top:2px"></div></div>
@@ -1216,7 +1292,7 @@ async function savePedido(){
   const precio=Number(document.getElementById('f-precio').value);
   if(!precio){toast('Ingresa el precio','error');return}
   const id=_CM.data.id||genId();
-  const p={id,clienteId:cid,clienteNombre:cnombre,clienteTel:document.getElementById('f-ctel').value.trim(),canal:document.getElementById('f-canal').value,zona:document.getElementById('f-zona').value,marca:document.getElementById('f-marca').value,modelo:document.getElementById('f-modelo').value.trim(),talla:document.getElementById('f-talla').value.trim(),color:document.getElementById('f-color').value.trim(),precio,costoUsd:Number(document.getElementById('f-costoUsd').value)||0,costoEnvio:Number(document.getElementById('f-costoEnvio').value)||0,adelanto:Number(document.getElementById('f-adelanto').value)||15000,estado:document.getElementById('f-estado').value,fecha:document.getElementById('f-fecha').value,trk_envioMarca:document.getElementById('f-t1').value,trk_llegadaMiami:document.getElementById('f-t2').value,trk_llegadaCR:document.getElementById('f-t3').value,notas:document.getElementById('f-notas').value.trim(),createdAt:_CM.data.createdAt||Date.now()};
+  const p={id,clienteId:cid,clienteNombre:cnombre,clienteTel:document.getElementById('f-ctel').value.trim(),canal:document.getElementById('f-canal').value,zona:document.getElementById('f-zona').value,marca:document.getElementById('f-marca').value,modelo:document.getElementById('f-modelo').value.trim(),talla:document.getElementById('f-talla').value.trim(),color:document.getElementById('f-color').value.trim(),precio,costoUsd:Number(document.getElementById('f-costoUsd').value)||0,costoEnvio:Number(document.getElementById('f-costoEnvio').value)||0,adelanto:Number(document.getElementById('f-adelanto').value)||15000,estado:document.getElementById('f-estado').value,fecha:document.getElementById('f-fecha').value,trackingNum:document.getElementById('f-trackingNum').value.trim(),trk_pedidoMarca:document.getElementById('f-t0').value||'',trk_envioMarca:document.getElementById('f-t1').value||'',trk_llegadaMiami:document.getElementById('f-t2').value||'',trk_llegadaCR:document.getElementById('f-t3').value||'',notas:document.getElementById('f-notas').value.trim(),createdAt:_CM.data.createdAt||Date.now()};
   if(!cid&&cnombre){const ex=CACHE.clientes.find(c=>(c.nombre||'').toLowerCase()===cnombre.toLowerCase());if(!ex){const nc={id:genId(),nombre:cnombre,tel:p.clienteTel,zona:p.zona,canal:p.canal,createdAt:Date.now()};await saveToSheets('clientes',nc);CACHE.clientes.push(nc);p.clienteId=nc.id}else p.clienteId=ex.id}
   await saveToSheets('pedidos',p);
   const pNorm=normalizePedido(p);
@@ -1710,6 +1786,259 @@ function usarEnPedido(){
 }
 
 function toast(msg,type=''){const c=document.getElementById('toast-container');const t=document.createElement('div');t.className='toast '+(type||'');t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3200)}
+
+// ══════════════════════════════════════════════════
+// POPUP DETALLE PEDIDO
+// ══════════════════════════════════════════════════
+function viewPedido(id){
+  const p = CACHE.pedidos.find(x=>x.id===id);
+  if(!p) return;
+  const g = calcGanancia(p);
+  const tcc = Number(CACHE.cfg?.tcc)||510;
+  const saldo = Number(p.precio||0) - Number(p.adelanto||0);
+  const gColor = g.ganancia>0?'var(--green)':g.ganancia<0?'var(--red)':'var(--text2)';
+  const saldoColor = saldo>0?'var(--orange)':'var(--green)';
+
+  // Tracking visual
+  const steps=[
+    {lb:'Pedido',icon:'🛒',d:p.trk_pedidoMarca},
+    {lb:'Marca envía',icon:'📦',d:p.trk_envioMarca},
+    {lb:'Miami',icon:'✈️',d:p.trk_llegadaMiami},
+    {lb:'Monica CR',icon:'🏠',d:p.trk_llegadaCR}
+  ];
+  const doneCount = steps.filter(s=>s.d).length;
+  const trkHTML = `<div class="tracking-steps">${steps.map((s,i)=>{
+    const isDone=!!s.d, isActive=!isDone&&i===doneCount;
+    const span=i<3?daysBetween(steps[i].d,steps[i+1]?.d||today()):null;
+    const sc=span===null?'':span>10?'late':span>6?'warn':'ok';
+    return `<div class="track-step ${isDone?'done':isActive?'active':''}">
+      <div class="track-dot">${s.icon}</div>
+      <div class="track-label">${s.lb}</div>
+      <div class="track-date">${s.d?fmtD(s.d):'pendiente'}</div>
+      ${span!==null&&i<3?`<div class="track-days ${sc}">${span}d</div>`:''}
+    </div>${i<3?'<div style="flex:1;min-width:16px"></div>':''}`;
+  }).join('')}</div>`;
+
+  const row=(label,val,color='')=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span style="color:var(--text3)">${label}</span>
+      <span style="font-weight:600;${color?'color:'+color:''}">${val}</span>
+    </div>`;
+
+  const body = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:18px;font-weight:900;font-family:'Barlow Condensed',sans-serif">${esc(p.clienteNombre)}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">${p.clienteTel?`<a href="https://wa.me/506${(p.clienteTel||'').replace(/\D/g,'')}" target="_blank" style="color:var(--orange)">📱 ${esc(p.clienteTel)}</a>`:'Sin teléfono'}</div>
+      </div>
+      <span class="${badgeClass(p.estado)}" style="font-size:12px;padding:4px 12px">${p.estado}</span>
+    </div>
+
+    <div style="background:var(--surface2);border-radius:var(--radius);padding:12px 16px;margin-bottom:14px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Producto</div>
+      <div style="font-size:15px;font-weight:700">${esc(p.marca||'')} ${esc(p.modelo||'')}</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:3px">${[p.talla?'Talla '+p.talla:'',p.color?p.color:'',p.zona?'📍 '+p.zona:''].filter(Boolean).join(' · ')}</div>
+      ${p.canal?`<div style="margin-top:6px">${canalBadge(p.canal)}</div>`:''}
+    </div>
+
+    <div style="margin-bottom:14px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Financiero · T/C ₡${tcc}</div>
+      ${row('Precio de venta',fmtM(p.precio),'var(--text)')}
+      ${row('Costo tenis ($'+p.costoUsd+')',fmtM(g.costoCrcUsd))}
+      ${p.costoEnvio?row('Casillero Mónica',fmtM(g.costoEnvioCrc)):''}
+      ${row('Ganancia neta',fmtM(g.ganancia),gColor)}
+      ${row('Adelanto recibido',fmtM(p.adelanto))}
+      ${row('Saldo pendiente',fmtM(saldo),saldoColor)}
+    </div>
+
+    ${p.trackingNum?`
+    <div style="margin-bottom:14px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Tracking</div>
+      <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:8px 12px;display:flex;align-items:center;gap:8px">
+        <div style="font-family:monospace;font-size:12px;color:var(--blue);flex:1;word-break:break-all">${esc(p.trackingNum)}</div>
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="navigator.clipboard?.writeText('${esc(p.trackingNum)}').then(()=>toast('Copiado ✓','success'))" title="Copiar">📋</button>
+      </div>
+    </div>`:''}
+
+    <div style="margin-bottom:14px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Tránsito</div>
+      ${trkHTML}
+    </div>
+
+    ${p.notas?`
+    <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text2)">
+      <span style="color:var(--text3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Notas</span><br>
+      <span style="margin-top:4px;display:block">${esc(p.notas)}</span>
+    </div>`:''}
+
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="closePopup();editPedido('${p.id}')">✏️ Editar pedido</button>
+      <button class="btn btn-ghost" onclick="closePopup()">Cerrar</button>
+    </div>`;
+
+  openPopup(`📦 Pedido #${esc(p.clienteNombre)}`, body);
+}
+
+// ══════════════════════════════════════════════════
+// IMPUESTOS
+// ══════════════════════════════════════════════════
+let _impLineas = [];
+
+function renderImpuestos(){
+  const tccEl = document.getElementById('imp-tcc');
+  if(tccEl && !tccEl.value) tccEl.value = CACHE.cfg?.tcc || 510;
+  _renderImpTabla();
+}
+
+function limpiarImpuestos(){
+  if(_impLineas.length && !confirm('¿Limpiar todas las líneas y empezar de nuevo?')) return;
+  _impLineas = [];
+  const fields = ['imp-total-imp','imp-otros'];
+  fields.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  // Reset TCC to config value
+  const tccEl = document.getElementById('imp-tcc');
+  if(tccEl) tccEl.value = CACHE.cfg?.tcc || 510;
+  _renderImpTabla();
+  // Reset totals
+  ['imp-tot-costo','imp-tot-pct','imp-tot-imp','imp-tot-otros','imp-tot-final','imp-tot-crc'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.textContent = id==='imp-tot-pct'?'100%':'—';
+  });
+  document.getElementById('imp-resumen-panel').style.display='none';
+  toast('Campos limpiados','success');
+}
+
+function addLineaImpuesto(){
+  const id = 'l' + Date.now() + Math.random().toString(36).slice(2,5);
+  _impLineas.push({id, desc:'', costo:0});
+  _renderImpTabla();
+  setTimeout(()=>{ const el=document.getElementById('imp-desc-'+id); if(el) el.focus(); }, 60);
+}
+
+function removeLineaImpuesto(id){
+  _impLineas = _impLineas.filter(l => l.id !== id);
+  _renderImpTabla();
+  calcImpuestos();
+}
+
+function _renderImpTabla(){
+  const empty = document.getElementById('imp-empty');
+  const wrap  = document.getElementById('imp-table-wrap');
+  const tbody = document.getElementById('imp-tbody');
+  if(!_impLineas.length){
+    empty.style.display='block'; wrap.style.display='none';
+    document.getElementById('imp-resumen-panel').style.display='none'; return;
+  }
+  empty.style.display='none'; wrap.style.display='block';
+  tbody.innerHTML = _impLineas.map(l => {
+    const iStyle = 'background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:6px 8px;font-size:12px;color:var(--text);outline:none;transition:border-color .15s';
+    return `<tr>
+      <td><input type="text" id="imp-desc-${l.id}" value="${esc(l.desc)}" placeholder="Ej. Nike Air Max 90"
+           style="${iStyle};width:100%" onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--border2)'"
+           oninput="_impLineas.find(x=>x.id==='${l.id}').desc=this.value"></td>
+      <td style="text-align:right"><input type="number" id="imp-costo-${l.id}" value="${l.costo||''}" placeholder="0.00" step="0.01" min="0"
+           style="${iStyle};width:90px;text-align:right" onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--border2)'"
+           oninput="_impLineas.find(x=>x.id==='${l.id}').costo=Number(this.value)||0;calcImpuestos()"></td>
+      <td id="imp-pct-${l.id}"  style="text-align:right;color:var(--text3);font-size:11px">—</td>
+      <td id="imp-imp-${l.id}"  style="text-align:right;color:var(--amber);font-weight:700;font-size:12px">—</td>
+      <td id="imp-otr-${l.id}"  style="text-align:right;color:var(--blue);font-size:12px">—</td>
+      <td id="imp-fin-${l.id}"  style="text-align:right;color:var(--green);font-weight:700;font-size:12px">—</td>
+      <td id="imp-crc-${l.id}"  style="text-align:right;color:var(--green);font-size:11px">—</td>
+      <td><button class="btn btn-sm btn-danger btn-icon" onclick="removeLineaImpuesto('${l.id}')">🗑️</button></td>
+    </tr>`;
+  }).join('');
+  calcImpuestos();
+}
+
+function calcImpuestos(){
+  if(!_impLineas.length) return;
+  const tcc      = Number(document.getElementById('imp-tcc')?.value) || Number(CACHE.cfg?.tcc) || 510;
+  const totalImp = Number(document.getElementById('imp-total-imp')?.value) || 0;
+  const totalOtr = Number(document.getElementById('imp-otros')?.value) || 0;
+  const totalCosto = _impLineas.reduce((s,l) => s + (Number(l.costo)||0), 0);
+  let sumImpAcc=0, sumOtrAcc=0;
+
+  _impLineas.forEach((l, idx) => {
+    const costo  = Number(l.costo)||0;
+    const pct    = totalCosto > 0 ? costo/totalCosto : 0;
+    const isLast = idx === _impLineas.length-1;
+    let impAsig, otrAsig;
+    if(isLast){
+      // Remainder goes to last line to prevent rounding gaps
+      impAsig = Math.round((totalImp - sumImpAcc)*100)/100;
+      otrAsig = Math.round((totalOtr - sumOtrAcc)*100)/100;
+    } else {
+      impAsig = Math.round(totalImp*pct*100)/100;
+      otrAsig = Math.round(totalOtr*pct*100)/100;
+      sumImpAcc += impAsig; sumOtrAcc += otrAsig;
+    }
+    const costoFinal = costo + impAsig + otrAsig;
+    const costoCRC   = Math.round(costoFinal * tcc);
+    const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val};
+    set(`imp-pct-${l.id}`, pct>0?(pct*100).toFixed(1)+'%':'0%');
+    set(`imp-imp-${l.id}`, '$'+impAsig.toFixed(2));
+    set(`imp-otr-${l.id}`, totalOtr?'$'+otrAsig.toFixed(2):'—');
+    set(`imp-fin-${l.id}`, '$'+costoFinal.toFixed(2));
+    set(`imp-crc-${l.id}`, '₡'+costoCRC.toLocaleString('es-CR'));
+    l._pct=pct; l._imp=impAsig; l._otr=otrAsig; l._fin=costoFinal; l._crc=costoCRC;
+  });
+
+  const totalFinal = _impLineas.reduce((s,l)=>s+(l._fin||0),0);
+  const totalCRC   = _impLineas.reduce((s,l)=>s+(l._crc||0),0);
+  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val};
+  set('imp-tot-costo','$'+totalCosto.toFixed(2));
+  set('imp-tot-pct','100%');
+  set('imp-tot-imp','$'+totalImp.toFixed(2));
+  set('imp-tot-otros',totalOtr?'$'+totalOtr.toFixed(2):'—');
+  set('imp-tot-final','$'+totalFinal.toFixed(2));
+  set('imp-tot-crc','₡'+totalCRC.toLocaleString('es-CR'));
+  _renderResumenImpuestos(tcc, totalOtr);
+}
+
+function _renderResumenImpuestos(tcc, totalOtr){
+  const panel = document.getElementById('imp-resumen-panel');
+  const cards = document.getElementById('imp-resumen-cards');
+  if(!_impLineas.length||!_impLineas.some(l=>l._fin!=null)){panel.style.display='none';return}
+  panel.style.display='block';
+  cards.innerHTML = _impLineas.map(l=>{
+    const desc = l.desc||'Sin descripción';
+    const pct  = l._pct!=null?(l._pct*100).toFixed(1):'0';
+    const fin  = (l._fin||0).toFixed(2);
+    const crc  = (l._crc||0).toLocaleString('es-CR');
+    const barW = l._pct!=null?Math.round(l._pct*100):0;
+    return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:13px 16px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:13px;color:var(--text)">${esc(desc)}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">
+            Base: <span style="color:var(--text2)">$${(Number(l.costo)||0).toFixed(2)}</span>
+            · Impuesto: <span style="color:var(--amber)">$${(l._imp||0).toFixed(2)}</span>
+            ${totalOtr?` · Otros: <span style="color:var(--blue)">$${(l._otr||0).toFixed(2)}</span>`:''}
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--green)">$${fin}</div>
+          <div style="font-size:12px;color:var(--green);opacity:.75">₡${crc}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="flex:1;background:var(--surface3);border-radius:4px;height:6px;overflow:hidden">
+          <div style="width:${barW}%;height:100%;background:var(--orange);border-radius:4px;transition:width .4s"></div>
+        </div>
+        <span style="font-size:10px;font-weight:700;color:var(--orange);min-width:36px;text-align:right">${pct}%</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function copiarResumenImpuestos(){
+  const tcc = Number(document.getElementById('imp-tcc')?.value)||Number(CACHE.cfg?.tcc)||510;
+  const lines = _impLineas.map(l=>`• ${l.desc||'Producto'}: $${(l._fin||0).toFixed(2)} (₡${(l._crc||0).toLocaleString('es-CR')}) — ${((l._pct||0)*100).toFixed(1)}% del costo`);
+  const totalFin = _impLineas.reduce((s,l)=>s+(l._fin||0),0);
+  const totalCRC = _impLineas.reduce((s,l)=>s+(l._crc||0),0);
+  const text = `Desglose de impuestos (T/C ₡${tcc})\n\n${lines.join('\n')}\n\nTOTAL: $${totalFin.toFixed(2)} = ₡${totalCRC.toLocaleString('es-CR')}`;
+  navigator.clipboard?.writeText(text).then(()=>toast('Resumen copiado ✓','success')).catch(()=>toast('No se pudo copiar','error'));
+}
 
 // ══════════════════════════════════════════════════
 // INIT
