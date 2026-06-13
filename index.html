@@ -203,9 +203,11 @@ input[readonly]{background:var(--surface3);cursor:default}
     <button onclick="showPage('clientes')">👤 Clientes</button>
     <button onclick="showPage('metaads')">📣 Meta Ads</button>
     <button onclick="showPage('catalogo')">👟 Catálogo</button>
-    <button onclick="showPage('ajustes')">⚙️ Ajustes</button>
     <button onclick="showPage('calculadora')">🧮 Calculadora</button>
+    <button onclick="showPage('impuestos')">🧾 Impuestos</button>
+    <button onclick="showPage('disponibilidad')">🔍 Disponibilidad</button>
     <button onclick="showPage('mensajes')">💬 Mensajes WA</button>
+    <button onclick="showPage('ajustes')">⚙️ Ajustes</button>
   </nav>
   <span id="sync-status" class="sync-ok">✓ Google Sheets</span>
 </header>
@@ -518,7 +520,10 @@ input[readonly]{background:var(--surface3);cursor:default}
   <div class="panel" id="wa-panel-1">
     <div class="panel-header">
       <div class="panel-title">👋 Mensaje 1 — Primer contacto</div>
-      <button class="btn btn-primary btn-sm" onclick="waCopiar('wa-preview-1')">📋 Copiar</button>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="waReset(1)">🔄 Restablecer</button>
+        <button class="btn btn-primary btn-sm" onclick="waCopiar('wa-preview-1')">📋 Copiar</button>
+      </div>
     </div>
     <div class="wa-preview" id="wa-preview-1">👟 ¡Hola! Gracias por escribirnos a *ActiveFit Store* 😊
 
@@ -529,7 +534,10 @@ Contame, ¿qué modelo tenés en mente? Con la talla en US y si es para hombre o
   <div class="panel" id="wa-panel-2">
     <div class="panel-header">
       <div class="panel-title">👟 Mensaje 2 — Detalle del producto</div>
-      <button class="btn btn-primary btn-sm" onclick="waCopiar('wa-preview-2')">📋 Copiar</button>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="waReset(2)">🔄 Restablecer</button>
+        <button class="btn btn-primary btn-sm" onclick="waCopiar('wa-preview-2')">📋 Copiar</button>
+      </div>
     </div>
     <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:12px">
       <div class="form-group"><label>Marca</label><input type="text" id="wa2-marca" placeholder="Adidas" oninput="waRender2()"></div>
@@ -555,7 +563,10 @@ Contame, ¿qué modelo tenés en mente? Con la talla en US y si es para hombre o
   <div class="panel" id="wa-panel-3">
     <div class="panel-header">
       <div class="panel-title">🏪 Mensaje 3 — Somos tienda virtual</div>
-      <button class="btn btn-primary btn-sm" onclick="waCopiar('wa-preview-3')">📋 Copiar</button>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="waReset(3)">🔄 Restablecer</button>
+        <button class="btn btn-primary btn-sm" onclick="waCopiar('wa-preview-3')">📋 Copiar</button>
+      </div>
     </div>
     <div class="wa-preview" id="wa-preview-3">📲 Somos una tienda *100% virtual* — sin local físico, lo que nos permite traerte producto *original de EE.UU.* al mejor precio.
 
@@ -568,7 +579,10 @@ El proceso es simple: elegís, apartás con un adelanto y en menos de 15 días h
   <div class="panel" id="wa-panel-4">
     <div class="panel-header">
       <div class="panel-title">✅ Mensaje 4 — Confirmación de pedido</div>
-      <button class="btn btn-primary btn-sm" onclick="waCopiar('wa-preview-4')">📋 Copiar</button>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="waReset(4)">🔄 Restablecer</button>
+        <button class="btn btn-primary btn-sm" onclick="waCopiar('wa-preview-4')">📋 Copiar</button>
+      </div>
     </div>
     <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:12px">
       <div class="form-group"><label>Nombre cliente</label>
@@ -589,7 +603,10 @@ El proceso es simple: elegís, apartás con un adelanto y en menos de 15 días h
   <div class="panel" id="wa-panel-5">
     <div class="panel-header">
       <div class="panel-title">🚚 Mensaje 5 — Pedido listo para entrega</div>
-      <button class="btn btn-primary btn-sm" onclick="waCopiar('wa-preview-5')">📋 Copiar</button>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="waReset(5)">🔄 Restablecer</button>
+        <button class="btn btn-primary btn-sm" onclick="waCopiar('wa-preview-5')">📋 Copiar</button>
+      </div>
     </div>
     <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:12px">
       <div class="form-group"><label>Nombre cliente</label>
@@ -604,8 +621,8 @@ El proceso es simple: elegís, apartás con un adelanto y en menos de 15 días h
         </select>
       </div>
       <div class="form-group"><label>Dirección</label><input type="text" id="wa5-dir" placeholder="Cartago Centro" oninput="waRender5()"></div>
-      <div class="form-group"><label>Día de entrega</label><input type="text" id="wa5-dia" placeholder="lunes 16 de junio" oninput="waRender5()"></div>
-      <div class="form-group"><label>Hora</label><input type="text" id="wa5-hora" placeholder="2:00 p.m." oninput="waRender5()"></div>
+      <div class="form-group"><label>Día de entrega</label><input type="date" id="wa5-dia" oninput="waRender5()"></div>
+      <div class="form-group"><label>Hora de entrega</label><input type="time" id="wa5-hora" oninput="waRender5()"></div>
     </div>
     <div class="wa-preview" id="wa-preview-5"></div>
   </div>
@@ -614,7 +631,10 @@ El proceso es simple: elegís, apartás con un adelanto y en menos de 15 días h
   <div class="panel" id="wa-panel-6">
     <div class="panel-header">
       <div class="panel-title">📮 Mensaje 6 — Envío por Correos de Costa Rica</div>
-      <button class="btn btn-primary btn-sm" onclick="waCopiar('wa-preview-6')">📋 Copiar</button>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="waReset(6)">🔄 Restablecer</button>
+        <button class="btn btn-primary btn-sm" onclick="waCopiar('wa-preview-6')">📋 Copiar</button>
+      </div>
     </div>
     <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:12px">
       <div class="form-group"><label>Nombre cliente</label>
@@ -635,6 +655,115 @@ El proceso es simple: elegís, apartás con un adelanto y en menos de 15 días h
       <div class="form-group"><label>Saldo pendiente (₡)</label><input type="text" id="wa6-saldo" placeholder="47000" oninput="waRender6()"></div>
     </div>
     <div class="wa-preview" id="wa-preview-6"></div>
+  </div>
+</div>
+
+
+
+<!-- IMPUESTOS -->
+<div id="page-impuestos" class="page">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
+    <div class="page-title">🧾 Desglose de Impuestos</div>
+    <button class="btn btn-ghost btn-sm" onclick="limpiarImpuestos()">🗑️ Limpiar todo</button>
+  </div>
+  <div class="page-sub">Distribuí impuestos y cargos de una compra proporcionalmente al costo — resultado en $ y ₡</div>
+  <div class="panel">
+    <div class="panel-header" style="margin-bottom:12px"><div class="panel-title">⚙️ Datos de la compra</div></div>
+    <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(175px,1fr))">
+      <div class="form-group"><label>Tipo de cambio (₡/$1)</label><input type="number" id="imp-tcc" placeholder="510" step="0.01" oninput="calcImpuestos()"></div>
+      <div class="form-group"><label>Total impuestos ($)</label><input type="number" id="imp-total-imp" placeholder="45.00" step="0.01" oninput="calcImpuestos()"></div>
+      <div class="form-group"><label>Otros cargos ($) <span style="color:var(--text3);font-weight:400;text-transform:none;font-size:9px">opcional</span></label><input type="number" id="imp-otros" placeholder="envío, handling…" step="0.01" oninput="calcImpuestos()"></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">📦 Líneas de productos</div>
+      <button class="btn btn-primary btn-sm" onclick="addLineaImpuesto()">+ Agregar línea</button>
+    </div>
+    <div id="imp-empty" style="text-align:center;padding:32px;color:var(--text3)">Hacé clic en <strong style="color:var(--text2)">+ Agregar línea</strong> para comenzar.</div>
+    <div class="table-wrap" id="imp-table-wrap" style="display:none">
+      <table>
+        <thead><tr>
+          <th style="min-width:200px">Descripción</th><th style="min-width:90px;text-align:right">Costo ($)</th>
+          <th style="min-width:60px;text-align:right">%</th><th style="min-width:100px;text-align:right">Impuesto ($)</th>
+          <th style="min-width:90px;text-align:right">Otros ($)</th><th style="min-width:105px;text-align:right">Total ($)</th>
+          <th style="min-width:115px;text-align:right">Total (₡)</th><th style="width:36px"></th>
+        </tr></thead>
+        <tbody id="imp-tbody"></tbody>
+        <tfoot><tr style="border-top:2px solid var(--border2)">
+          <td style="font-weight:700;padding:10px">TOTALES</td>
+          <td id="imp-tot-costo" style="font-weight:700;color:var(--orange);text-align:right;padding:10px">—</td>
+          <td id="imp-tot-pct" style="font-weight:700;color:var(--text2);text-align:right;padding:10px">100%</td>
+          <td id="imp-tot-imp" style="font-weight:700;color:var(--amber);text-align:right;padding:10px">—</td>
+          <td id="imp-tot-otros" style="font-weight:700;color:var(--blue);text-align:right;padding:10px">—</td>
+          <td id="imp-tot-final" style="font-weight:700;color:var(--green);text-align:right;padding:10px">—</td>
+          <td id="imp-tot-crc" style="font-weight:700;color:var(--green);text-align:right;padding:10px">—</td>
+          <td></td>
+        </tr></tfoot>
+      </table>
+    </div>
+  </div>
+  <div id="imp-resumen-panel" class="panel" style="display:none">
+    <div class="panel-header">
+      <div class="panel-title">✅ Resumen</div>
+      <button class="btn btn-ghost btn-sm" onclick="copiarResumenImpuestos()">📋 Copiar</button>
+    </div>
+    <div id="imp-resumen-cards" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+</div>
+
+<!-- DISPONIBILIDAD -->
+<div id="page-disponibilidad" class="page">
+  <div class="page-title">🔍 Disponibilidad de Tallas</div>
+  <div class="page-sub">Buscá directamente en el sitio oficial de cada marca en EE.UU. — un clic abre la búsqueda ya filtrada</div>
+  <div class="panel">
+    <div class="panel-header" style="margin-bottom:14px"><div class="panel-title">🎯 Buscar</div></div>
+    <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px">
+      <div class="form-group">
+        <label>Marca</label>
+        <select id="dis-marca" onchange="dis_onMarcaChange()">
+          <option value="">Todas</option>
+          <option>Adidas</option><option>Nike</option><option>Reebok</option><option>New Balance</option>
+          <option>Asics</option><option>Under Armour</option><option>Skechers</option>
+          <option>Crocs</option><option>TYR</option><option>RAD</option><option>WhileOnEarth</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Modelo / estilo</label>
+        <input type="text" id="dis-modelo" placeholder="Ej. Ultraboost 5, Air Max 90…" list="dis-modelos-list">
+        <datalist id="dis-modelos-list"></datalist>
+      </div>
+      <div class="form-group">
+        <label>Género</label>
+        <select id="dis-genero">
+          <option value="all">Todos</option><option value="women">Mujer</option>
+          <option value="men">Hombre</option><option value="kids">Niños</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Talla US</label>
+        <input type="text" id="dis-talla" placeholder="Ej. 8, 8.5, 10W…">
+      </div>
+      <div class="form-group">
+        <label>Color <span style="color:var(--text3);font-size:9px;font-weight:400">opcional</span></label>
+        <input type="text" id="dis-color" placeholder="Ej. Black, White…">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn btn-primary" onclick="buscarDisponibilidad()">🔍 Buscar</button>
+      <button class="btn btn-ghost btn-sm" onclick="limpiarBusqueda()">✕ Limpiar</button>
+    </div>
+  </div>
+  <div id="dis-historial-panel" class="panel" style="display:none">
+    <div class="panel-header"><div class="panel-title">🕐 Últimas búsquedas</div><button class="btn btn-ghost btn-sm" onclick="limpiarHistorialDis()">Limpiar</button></div>
+    <div id="dis-historial" style="display:flex;flex-direction:column;gap:6px"></div>
+  </div>
+  <div id="dis-resultados" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div id="dis-query-label" style="font-size:13px;font-weight:700;color:var(--text)"></div>
+      <button class="btn btn-ghost btn-sm" onclick="abrirTodas()">🚀 Abrir todas</button>
+    </div>
+    <div id="dis-tiendas-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px"></div>
   </div>
 </div>
 
@@ -786,7 +915,7 @@ async function loadAll(){
   }
 }
 function refreshCurrentPage(page){
-  ({dashboard:renderDashboard,pedidos:renderPedidos,clientes:renderClientes,metaads:renderAds,catalogo:renderCatalogo,ajustes:renderAjustes,calculadora:renderCalculadora,mensajes:renderMensajes})[page]?.();
+  ({dashboard:renderDashboard,pedidos:renderPedidos,clientes:renderClientes,metaads:renderAds,catalogo:renderCatalogo,ajustes:renderAjustes,calculadora:renderCalculadora,impuestos:renderImpuestos,disponibilidad:renderDisponibilidad,mensajes:renderMensajes})[page]?.();
 }
 
 async function saveToSheets(sheet, data){
@@ -914,7 +1043,7 @@ function normalizeRow(row, numFields, dateFields){
 function normalizePedido(p){
   const r = normalizeRow(p,
     ['precio','costoUsd','costoEnvio','adelanto','createdAt'],
-    ['fecha','trk_envioMarca','trk_llegadaMiami','trk_llegadaCR']
+    ['fecha','trk_pedidoMarca','trk_envioMarca','trk_llegadaMiami','trk_llegadaCR']
   );
   // Forzar strings en campos de texto
   ['clienteNombre','clienteTel','canal','zona','marca','modelo','talla','color','estado','notas','id','clienteId','trackingNum'].forEach(f=>{
@@ -946,7 +1075,7 @@ function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('#main-nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
-  document.querySelectorAll('#main-nav button')[{dashboard:0,pedidos:1,clientes:2,metaads:3,catalogo:4,ajustes:5,calculadora:6,mensajes:7}[id]].classList.add('active');
+  document.querySelectorAll('#main-nav button')[{dashboard:0,pedidos:1,clientes:2,metaads:3,catalogo:4,calculadora:5,impuestos:6,disponibilidad:7,mensajes:8,ajustes:9}[id]].classList.add('active');
   // Si hay datos en cache, renderizar inmediatamente
   if(CACHE.pedidos.length>0 || CACHE.clientes.length>0){
     refreshCurrentPage(id);
@@ -1273,7 +1402,7 @@ function openModal(type,data={}){
 <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:14px">
   <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Edita las fechas conforme avanza el pedido.</div>
   <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(145px,1fr))">
-    <div class="form-group"><label>① Pedido a marca</label><input type="date" id="f-t0" value="${data.fecha||today()}" oninput="recalcTrk()"><div id="td0" style="font-size:10px;color:var(--text3);margin-top:2px"></div></div>
+    <div class="form-group"><label>① Pedido a marca</label><input type="date" id="f-t0" value="${data.trk_pedidoMarca||''}" oninput="recalcTrk()"><div id="td0" style="font-size:10px;color:var(--text3);margin-top:2px"></div></div>
     <div class="form-group"><label>② Marca envía</label><input type="date" id="f-t1" value="${data.trk_envioMarca||''}" oninput="recalcTrk()"><div id="td1" style="font-size:10px;color:var(--text3);margin-top:2px"></div></div>
     <div class="form-group"><label>③ Llega a Miami</label><input type="date" id="f-t2" value="${data.trk_llegadaMiami||''}" oninput="recalcTrk()"><div id="td2" style="font-size:10px;color:var(--text3);margin-top:2px"></div></div>
     <div class="form-group"><label>④ Monica entrega CR</label><input type="date" id="f-t3" value="${data.trk_llegadaCR||''}" oninput="recalcTrk()"><div id="td3" style="font-size:10px;color:var(--text3);margin-top:2px"></div></div>
@@ -1347,7 +1476,7 @@ async function savePedido(){
   const precio=Number(document.getElementById('f-precio').value);
   if(!precio){toast('Ingresa el precio','error');return}
   const id=_CM.data.id||genId();
-  const p={id,clienteId:cid,clienteNombre:cnombre,clienteTel:document.getElementById('f-ctel').value.trim(),canal:document.getElementById('f-canal').value,zona:document.getElementById('f-zona').value,marca:document.getElementById('f-marca').value,modelo:document.getElementById('f-modelo').value.trim(),talla:document.getElementById('f-talla').value.trim(),color:document.getElementById('f-color').value.trim(),precio,costoUsd:Number(document.getElementById('f-costoUsd').value)||0,costoEnvio:Number(document.getElementById('f-costoEnvio').value)||0,adelanto:Number(document.getElementById('f-adelanto').value)||15000,estado:document.getElementById('f-estado').value,fecha:document.getElementById('f-fecha').value,trk_envioMarca:document.getElementById('f-t1').value,trk_llegadaMiami:document.getElementById('f-t2').value,trk_llegadaCR:document.getElementById('f-t3').value,notas:document.getElementById('f-notas').value.trim(),createdAt:_CM.data.createdAt||Date.now()};
+  const p={id,clienteId:cid,clienteNombre:cnombre,clienteTel:document.getElementById('f-ctel').value.trim(),canal:document.getElementById('f-canal').value,zona:document.getElementById('f-zona').value,marca:document.getElementById('f-marca').value,modelo:document.getElementById('f-modelo').value.trim(),talla:document.getElementById('f-talla').value.trim(),color:document.getElementById('f-color').value.trim(),precio,costoUsd:Number(document.getElementById('f-costoUsd').value)||0,costoEnvio:Number(document.getElementById('f-costoEnvio').value)||0,adelanto:Number(document.getElementById('f-adelanto').value)||15000,estado:document.getElementById('f-estado').value,fecha:document.getElementById('f-fecha').value,trackingNum:document.getElementById('f-trackingNum')?.value.trim()||'',trk_pedidoMarca:document.getElementById('f-t0').value||'',trk_envioMarca:document.getElementById('f-t1').value||'',trk_llegadaMiami:document.getElementById('f-t2').value||'',trk_llegadaCR:document.getElementById('f-t3').value||'',notas:document.getElementById('f-notas').value.trim(),createdAt:_CM.data.createdAt||Date.now()};
   if(!cid&&cnombre){const ex=CACHE.clientes.find(c=>(c.nombre||'').toLowerCase()===cnombre.toLowerCase());if(!ex){const nc={id:genId(),nombre:cnombre,tel:p.clienteTel,zona:p.zona,canal:p.canal,createdAt:Date.now()};await saveToSheets('clientes',nc);CACHE.clientes.push(nc);p.clienteId=nc.id}else p.clienteId=ex.id}
   await saveToSheets('pedidos',p);
   const pNorm=normalizePedido(p);
@@ -1843,6 +1972,301 @@ function usarEnPedido(){
 function toast(msg,type=''){const c=document.getElementById('toast-container');const t=document.createElement('div');t.className='toast '+(type||'');t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3200)}
 
 // ══════════════════════════════════════════════════
+// IMPUESTOS
+// ══════════════════════════════════════════════════
+let _impLineas=[];
+function renderImpuestos(){const el=document.getElementById('imp-tcc');if(el&&!el.value)el.value=CACHE.cfg?.tcc||510;_impRender();}
+function limpiarImpuestos(){
+  if(_impLineas.length&&!confirm('¿Limpiar todo y empezar de nuevo?'))return;
+  _impLineas=[];
+  ['imp-total-imp','imp-otros'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const t=document.getElementById('imp-tcc');if(t)t.value=CACHE.cfg?.tcc||510;
+  _impRender();
+  ['imp-tot-costo','imp-tot-pct','imp-tot-imp','imp-tot-otros','imp-tot-final','imp-tot-crc'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});
+  document.getElementById('imp-resumen-panel').style.display='none';
+  toast('Limpiado ✓','success');
+}
+function addLineaImpuesto(){const id='l'+Date.now()+Math.random().toString(36).slice(2,5);_impLineas.push({id,desc:'',costo:0});_impRender();setTimeout(()=>{const el=document.getElementById('imp-desc-'+id);if(el)el.focus();},60);}
+function removeLineaImpuesto(id){_impLineas=_impLineas.filter(l=>l.id!==id);_impRender();calcImpuestos();}
+function _impRender(){
+  const empty=document.getElementById('imp-empty'),wrap=document.getElementById('imp-table-wrap'),tbody=document.getElementById('imp-tbody');
+  if(!_impLineas.length){empty.style.display='block';wrap.style.display='none';document.getElementById('imp-resumen-panel').style.display='none';return;}
+  empty.style.display='none';wrap.style.display='block';
+  const iS='background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:6px 8px;font-size:12px;color:var(--text);outline:none';
+  tbody.innerHTML=_impLineas.map(l=>`<tr>
+    <td><input type="text" id="imp-desc-${l.id}" value="${esc(l.desc)}" placeholder="Ej. Nike Air Max 90" style="${iS};width:100%" oninput="_impLineas.find(x=>x.id==='${l.id}').desc=this.value"></td>
+    <td style="text-align:right"><input type="number" id="imp-costo-${l.id}" value="${l.costo||''}" placeholder="0.00" step="0.01" min="0" style="${iS};width:88px;text-align:right" oninput="_impLineas.find(x=>x.id==='${l.id}').costo=Number(this.value)||0;calcImpuestos()"></td>
+    <td id="imp-pct-${l.id}" style="text-align:right;color:var(--text3);font-size:11px">—</td>
+    <td id="imp-imp-${l.id}" style="text-align:right;color:var(--amber);font-weight:700;font-size:12px">—</td>
+    <td id="imp-otr-${l.id}" style="text-align:right;color:var(--blue);font-size:12px">—</td>
+    <td id="imp-fin-${l.id}" style="text-align:right;color:var(--green);font-weight:700;font-size:12px">—</td>
+    <td id="imp-crc-${l.id}" style="text-align:right;color:var(--green);font-size:11px">—</td>
+    <td><button class="btn btn-sm btn-danger btn-icon" onclick="removeLineaImpuesto('${l.id}')">🗑️</button></td>
+  </tr>`).join('');
+  calcImpuestos();
+}
+function calcImpuestos(){
+  if(!_impLineas.length)return;
+  const tcc=Number(document.getElementById('imp-tcc')?.value)||Number(CACHE.cfg?.tcc)||510;
+  const totalImp=Number(document.getElementById('imp-total-imp')?.value)||0;
+  const totalOtr=Number(document.getElementById('imp-otros')?.value)||0;
+  const totalCosto=_impLineas.reduce((s,l)=>s+(Number(l.costo)||0),0);
+  let sI=0,sO=0;
+  _impLineas.forEach((l,idx)=>{
+    const c=Number(l.costo)||0,pct=totalCosto>0?c/totalCosto:0,isLast=idx===_impLineas.length-1;
+    let imp,otr;
+    if(isLast){imp=Math.round((totalImp-sI)*100)/100;otr=Math.round((totalOtr-sO)*100)/100;}
+    else{imp=Math.round(totalImp*pct*100)/100;otr=Math.round(totalOtr*pct*100)/100;sI+=imp;sO+=otr;}
+    const fin=c+imp+otr,crc=Math.round(fin*tcc);
+    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+    set(`imp-pct-${l.id}`,pct>0?(pct*100).toFixed(1)+'%':'0%');
+    set(`imp-imp-${l.id}`,'$'+imp.toFixed(2));set(`imp-otr-${l.id}`,totalOtr?'$'+otr.toFixed(2):'—');
+    set(`imp-fin-${l.id}`,'$'+fin.toFixed(2));set(`imp-crc-${l.id}`,'₡'+crc.toLocaleString('es-CR'));
+    l._pct=pct;l._imp=imp;l._otr=otr;l._fin=fin;l._crc=crc;
+  });
+  const tF=_impLineas.reduce((s,l)=>s+(l._fin||0),0),tC=_impLineas.reduce((s,l)=>s+(l._crc||0),0);
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+  set('imp-tot-costo','$'+totalCosto.toFixed(2));set('imp-tot-pct','100%');
+  set('imp-tot-imp','$'+totalImp.toFixed(2));set('imp-tot-otros',totalOtr?'$'+totalOtr.toFixed(2):'—');
+  set('imp-tot-final','$'+tF.toFixed(2));set('imp-tot-crc','₡'+tC.toLocaleString('es-CR'));
+  const panel=document.getElementById('imp-resumen-panel'),cards=document.getElementById('imp-resumen-cards');
+  if(!_impLineas.some(l=>l._fin!=null)){panel.style.display='none';return;}
+  panel.style.display='block';
+  cards.innerHTML=_impLineas.map(l=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 15px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:7px">
+      <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13px">${esc(l.desc||'Sin descripción')}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">Base: <span style="color:var(--text2)">$${(Number(l.costo)||0).toFixed(2)}</span> · Impuesto: <span style="color:var(--amber)">$${(l._imp||0).toFixed(2)}</span></div></div>
+      <div style="text-align:right;flex-shrink:0"><div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--green)">$${(l._fin||0).toFixed(2)}</div>
+      <div style="font-size:12px;color:var(--green);opacity:.8">₡${(l._crc||0).toLocaleString('es-CR')}</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px"><div style="flex:1;background:var(--surface3);border-radius:4px;height:5px;overflow:hidden"><div style="width:${Math.round((l._pct||0)*100)}%;height:100%;background:var(--orange);border-radius:4px"></div></div>
+    <span style="font-size:10px;font-weight:700;color:var(--orange);min-width:34px;text-align:right">${((l._pct||0)*100).toFixed(1)}%</span></div></div>`).join('');
+}
+function copiarResumenImpuestos(){
+  const tcc=Number(document.getElementById('imp-tcc')?.value)||Number(CACHE.cfg?.tcc)||510;
+  const lines=_impLineas.map(l=>`• ${l.desc||'Producto'}: $${(l._fin||0).toFixed(2)} (₡${(l._crc||0).toLocaleString('es-CR')}) — ${((l._pct||0)*100).toFixed(1)}%`);
+  const tF=_impLineas.reduce((s,l)=>s+(l._fin||0),0),tC=_impLineas.reduce((s,l)=>s+(l._crc||0),0);
+  navigator.clipboard?.writeText(`Desglose impuestos (T/C ₡${tcc})\n\n${lines.join('\n')}\n\nTOTAL: $${tF.toFixed(2)} = ₡${tC.toLocaleString('es-CR')}`).then(()=>toast('Copiado ✓','success')).catch(()=>toast('Error al copiar','error'));
+}
+
+// ══════════════════════════════════════════════════
+// DISPONIBILIDAD — SITIOS OFICIALES POR MARCA
+// ══════════════════════════════════════════════════
+const DIS_MODELOS={
+  'Adidas':['Ultraboost 5','Ultraboost 22','Adizero EVO SL','Adizero Boston 12','Adizero SL','Supernova Rise 2','Stan Smith','Samba OG','Forum Low','NMD R1','Gazelle','Grand Court 2.0','Runfalcon 3','4DFWD 3','Solar Glide 6'],
+  'Nike':['Air Max 90','Air Max 270','Air Max 97','Air Force 1','React Infinity Run 4','Pegasus 41','Vomero 18','Structure 25','Free RN 5','Metcon 9','Blazer Low','Air Zoom Tempo','Invincible 3'],
+  'Reebok':['Classic Leather','Club C 85','Nano X4','Nano X3','Floatride Energy 5','Energen Run 2','Legacy 83'],
+  'New Balance':['Fresh Foam X 1080v13','Fresh Foam X 880v14','990v6','574','327','530','2002R','860v14','1500'],
+  'Asics':['Gel-Nimbus 26','Gel-Kayano 31','Gel-Cumulus 26','Gel-DS Trainer 29','GT-2000 13','Gel-Venture 9','Gel-Sonoma 7','Gel-Pulse 15'],
+  'Under Armour':['HOVR Phantom 3','HOVR Sonic 6','Charged Assert 10','Charged Rogue 4','Charged Pursuit 3','SlipSpeed Mega'],
+  'Skechers':['Go Walk 7','Go Run 600','D\'Lites','Max Cushioning Elite 2','Arch Fit','Ultra Flex 3.0','Slip-ins'],
+  'Crocs':['Classic Clog','Classic Sandal','LiteRide 360 Clog','Echo Clog','Mega Crush Clog','Classic Platform','Bistro'],
+  'TYR':['Valiant 4','CXT-1 Trainer','Techknit Trainer','L-1 Lifter'],
+  'RAD':['One V2','Runner','Lift','Ground','MX'],
+  'WhileOnEarth':['Rhythm Runner','Active Slide','Wellness Walker']
+};
+
+// URLs OFICIALES por marca — investigadas y verificadas
+const DIS_MARCAS_CONFIG={
+  'Adidas':{
+    icon:'⚽', color:'#000', textColor:'#fff',
+    url:(modelo,talla,genero,color)=>{
+      const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
+      const g=genero==='women'?'&gender=women':genero==='men'?'&gender=men':'';
+      return `https://www.adidas.com/us/search?q=${q}${g}`;
+    }
+  },
+  'Nike':{
+    icon:'✔️', color:'#111', textColor:'#fff',
+    url:(modelo,talla,genero,color)=>{
+      const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
+      return `https://www.nike.com/w?q=${q}&vst=${q}`;
+    }
+  },
+  'Reebok':{
+    icon:'🔷', color:'#e53935', textColor:'#fff',
+    url:(modelo,talla,genero,color)=>{
+      const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
+      return `https://www.reebok.com/search?q=${q}`;
+    }
+  },
+  'New Balance':{
+    icon:'🔵', color:'#1565c0', textColor:'#fff',
+    url:(modelo,talla,genero,color)=>{
+      const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
+      const g=genero==='women'?'W':genero==='men'?'M':'';
+      return `https://www.newbalance.com/search?q=${q}${g?'&prefn1=gender&prefv1='+g:''}`;
+    }
+  },
+  'Asics':{
+    icon:'🔶', color:'#003da5', textColor:'#fff',
+    url:(modelo,talla,genero,color)=>{
+      const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
+      const g=genero==='women'?'&prefn1=gender&prefv1=Women':genero==='men'?'&prefn1=gender&prefv1=Men':'';
+      return `https://www.asics.com/us/en-us/search/?q=${q}${g}`;
+    }
+  },
+  'Under Armour':{
+    icon:'🛡️', color:'#1d1d1d', textColor:'#fff',
+    url:(modelo,talla,genero,color)=>{
+      const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
+      const g=genero==='women'?'womens-':genero==='men'?'mens-':'';
+      return `https://www.underarmour.com/en-us/search?q=${q}`;
+    }
+  },
+  'Skechers':{
+    icon:'👟', color:'#003087', textColor:'#fff',
+    url:(modelo,talla,genero,color)=>{
+      const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
+      const g=genero==='women'?'&Gender=Female':genero==='men'?'&Gender=Male':'';
+      return `https://www.skechers.com/search/?q=${q}${g}`;
+    }
+  },
+  'Crocs':{
+    icon:'🐊', color:'#009a44', textColor:'#fff',
+    url:(modelo,talla,genero,color)=>{
+      const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
+      const g=genero==='women'?'/c/women/footwear':genero==='men'?'/c/men/footwear':genero==='kids'?'/c/kids/footwear':'/c/footwear';
+      // Si hay modelo específico, ir a búsqueda; si no, ir a categoría por género
+      return modelo
+        ? `https://www.crocs.com/search?q=${q}&lang=en_US`
+        : `https://www.crocs.com${g}/clogs`;
+    }
+  },
+  'TYR':{
+    icon:'🌊', color:'#0d2b6b', textColor:'#fff',
+    url:(modelo,talla,genero,color)=>{
+      const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
+      return `https://www.tyr.com/search?type=product&q=${q}`;
+    }
+  },
+  'RAD':{
+    icon:'💪', color:'#222', textColor:'#fff',
+    url:(modelo,talla,genero,color)=>{
+      const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
+      return `https://rad-global.com/search?q=${q}&type=product`;
+    }
+  },
+  'WhileOnEarth':{
+    icon:'🌿', color:'#2e7d32', textColor:'#fff',
+    url:(modelo,talla,genero,color)=>{
+      const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
+      return `https://whileonearth.co/search?q=${q}&type=product`;
+    }
+  }
+};
+
+let _disResultados=[];
+let _disHistorial=[];
+try{_disHistorial=JSON.parse(localStorage.getItem('dis_hist')||'[]');}catch(e){}
+
+function renderDisponibilidad(){renderHistorialDis();}
+
+function dis_onMarcaChange(){
+  const marca=document.getElementById('dis-marca').value;
+  const dl=document.getElementById('dis-modelos-list');
+  dl.innerHTML=(DIS_MODELOS[marca]||[]).map(m=>`<option value="${esc(m)}">`).join('');
+}
+
+function buscarDisponibilidad(){
+  const marca=document.getElementById('dis-marca').value;
+  const modelo=document.getElementById('dis-modelo').value.trim();
+  const talla=document.getElementById('dis-talla').value.trim();
+  const genero=document.getElementById('dis-genero').value;
+  const color=document.getElementById('dis-color').value.trim();
+  if(!marca&&!modelo){toast('Ingresá al menos marca o modelo','error');return;}
+
+  // Si seleccionó una marca específica buscar solo en esa, sino en todas
+  const marcasABuscar = marca ? [marca] : Object.keys(DIS_MARCAS_CONFIG);
+
+  _disResultados = marcasABuscar.map(m=>{
+    const cfg=DIS_MARCAS_CONFIG[m];
+    if(!cfg) return null;
+    return {nombre:m, icon:cfg.icon, color:cfg.color, textColor:cfg.textColor,
+      link:cfg.url(modelo||m,talla,genero,color)};
+  }).filter(Boolean);
+
+  // Guardar historial
+  const entry={marca,modelo,talla,genero,color,fecha:new Date().toLocaleTimeString('es-CR',{hour:'2-digit',minute:'2-digit'})+' '+new Date().toLocaleDateString('es-CR')};
+  _disHistorial.unshift(entry);
+  if(_disHistorial.length>10)_disHistorial=_disHistorial.slice(0,10);
+  try{localStorage.setItem('dis_hist',JSON.stringify(_disHistorial));}catch(e){}
+
+  // Render
+  const label=`${[marca||'Todas las marcas',modelo,talla?'T.'+talla:'',color,genero!=='all'?'('+genero+')':''].filter(Boolean).join(' · ')}`;
+  document.getElementById('dis-query-label').textContent=label+` — ${_disResultados.length} tiendas`;
+
+  document.getElementById('dis-tiendas-grid').innerHTML=_disResultados.map(r=>`
+    <div style="background:${r.color};border-radius:var(--radius);padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:16px;font-weight:900;font-family:'Barlow Condensed',sans-serif;color:${r.textColor};letter-spacing:.5px">${r.icon} ${esc(r.nombre)}</div>
+          <div style="font-size:11px;color:${r.textColor};opacity:.6;margin-top:2px;font-family:monospace;word-break:break-all;overflow:hidden;max-height:2.6em">${r.link.length>60?r.link.slice(0,60)+'…':r.link}</div>
+        </div>
+        <button onclick="window.open('${r.link.replace(/'/g,"\\'")}','_blank')"
+           style="flex-shrink:0;background:rgba(255,255,255,.2);color:${r.textColor};border:1.5px solid rgba(255,255,255,.4);border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap"
+           onmouseover="this.style.background='rgba(255,255,255,.35)'" onmouseout="this.style.background='rgba(255,255,255,.2)'">
+          Abrir →
+        </button>
+      </div>
+      <button onclick="navigator.clipboard?.writeText('${r.link.replace(/'/g,"\\'")}').then(()=>toast('Link copiado ✓','success'))"
+        style="background:rgba(255,255,255,.1);border:none;color:${r.textColor};opacity:.75;font-size:10px;padding:4px 8px;border-radius:4px;cursor:pointer;text-align:left">
+        📋 Copiar link
+      </button>
+    </div>`).join('');
+
+  document.getElementById('dis-resultados').style.display='block';
+  renderHistorialDis();
+}
+
+function abrirTodas(){
+  if(!_disResultados.length){toast('Primero realizá una búsqueda','error');return;}
+  // Abrir todas en pestañas — el primer open es directo (no bloqueado),
+  // los siguientes con delay mínimo
+  _disResultados.forEach((r,i)=>{
+    if(i===0) window.open(r.link,'_blank');
+    else setTimeout(()=>window.open(r.link,'_blank'),i*300);
+  });
+  toast(`${_disResultados.length} tiendas abiertas 🚀`,'success');
+}
+
+function limpiarBusqueda(){
+  ['dis-marca','dis-modelo','dis-talla','dis-color'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('dis-genero').value='all';
+  document.getElementById('dis-resultados').style.display='none';
+  _disResultados=[];
+}
+
+function renderHistorialDis(){
+  const panel=document.getElementById('dis-historial-panel'),cont=document.getElementById('dis-historial');
+  if(!_disHistorial.length){panel.style.display='none';return;}
+  panel.style.display='block';
+  cont.innerHTML=_disHistorial.slice(0,5).map((h,i)=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;gap:8px;flex-wrap:wrap">
+      <div><span style="font-weight:700">${[h.marca,h.modelo,h.talla?'T.'+h.talla:'',h.color].filter(Boolean).join(' · ')||'Búsqueda'}</span>
+      <span style="color:var(--text3);margin-left:8px;font-size:10px">${h.fecha}</span></div>
+      <button class="btn btn-ghost btn-sm" onclick="rehacerBusqueda(${i})">Repetir →</button>
+    </div>`).join('');
+}
+
+function rehacerBusqueda(idx){
+  const h=_disHistorial[idx];if(!h)return;
+  document.getElementById('dis-marca').value=h.marca||'';
+  dis_onMarcaChange();
+  document.getElementById('dis-modelo').value=h.modelo||'';
+  document.getElementById('dis-talla').value=h.talla||'';
+  document.getElementById('dis-genero').value=h.genero||'all';
+  document.getElementById('dis-color').value=h.color||'';
+  buscarDisponibilidad();
+}
+
+function limpiarHistorialDis(){
+  _disHistorial=[];
+  try{localStorage.removeItem('dis_hist');}catch(e){}
+  renderHistorialDis();
+}
+
+// ══════════════════════════════════════════════════
 // MENSAJES WHATSAPP
 // ══════════════════════════════════════════════════
 
@@ -1932,6 +2356,40 @@ function waAutoFill(msg, nombreEscrito){
     }
     waRender6();
   }
+}
+
+function waReset(num){
+  const clr = ids => ids.forEach(id=>{ const el=document.getElementById(id); if(el){ el.value=''; if(el.type==='checkbox') el.checked=false; if(el.tagName==='SELECT') el.selectedIndex=0; }});
+  if(num===1){
+    // Msg1 tiene texto fijo — solo restaurar el texto original
+    waSet('wa-preview-1',`👟 ¡Hola! Gracias por escribirnos a *ActiveFit Store* 😊\n\nContame, ¿qué modelo tenés en mente? Con la talla en US y si es para hombre o mujer te confirmo disponibilidad y precio de una vez 🙌`);
+  }
+  if(num===2){
+    clr(['wa2-marca','wa2-modelo','wa2-color','wa2-talla','wa2-precio','wa2-adelanto','wa2-oferta']);
+    document.getElementById('wa2-genero').selectedIndex=0;
+    waRender2();
+  }
+  if(num===3){
+    // Msg3 tiene texto fijo — restaurar
+    waSet('wa-preview-3',`📲 Somos una tienda *100% virtual* — sin local físico, lo que nos permite traerte producto *original de EE.UU.* al mejor precio.\n\nSin réplicas. Sin AAA. Solo lo real. 💯\n\nEl proceso es simple: elegís, apartás con un adelanto y en menos de 15 días hábiles lo tenés en tus manos. Todo por acá, sin complicaciones 🙌`);
+  }
+  if(num===4){
+    clr(['wa4-nombre','wa4-dir','wa4-total','wa4-adelanto','wa4-saldo']);
+    _wa4Productos = [{marca:'',modelo:'',color:'',talla:'',genero:'Hombre',precio:''}];
+    wa4RenderProductos();
+    waRender4();
+  }
+  if(num===5){
+    clr(['wa5-nombre','wa5-marca','wa5-modelo','wa5-talla','wa5-dir','wa5-dia','wa5-hora']);
+    document.getElementById('wa5-genero').selectedIndex=0;
+    waRender5();
+  }
+  if(num===6){
+    clr(['wa6-nombre','wa6-marca','wa6-modelo','wa6-talla','wa6-prov','wa6-canton','wa6-distrito','wa6-senas','wa6-saldo']);
+    document.getElementById('wa6-genero').selectedIndex=0;
+    waRender6();
+  }
+  toast('Mensaje restablecido ✓','success');
 }
 
 function waCopiar(id){
@@ -2083,8 +2541,28 @@ function waRender5(){
   const talla  = waVal('wa5-talla','[TALLA]');
   const genero = waVal('wa5-genero','Hombre');
   const dir    = waVal('wa5-dir','[DIRECCIÓN]');
-  const dia    = waVal('wa5-dia','[DÍA]');
-  const hora   = waVal('wa5-hora','[HORA]');
+  const diaRaw = document.getElementById('wa5-dia')?.value||'';
+  const horaRaw= document.getElementById('wa5-hora')?.value||'';
+
+  // Formatear fecha: "lunes 16 de junio"
+  let diaTexto = '[DÍA]';
+  if(diaRaw){
+    try{
+      const d = new Date(diaRaw+'T12:00:00');
+      diaTexto = d.toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long'});
+    }catch(e){ diaTexto = diaRaw; }
+  }
+
+  // Formatear hora: "2:00 p.m."
+  let horaTexto = '[HORA]';
+  if(horaRaw){
+    try{
+      const [hh,mm] = horaRaw.split(':').map(Number);
+      const ampm = hh >= 12 ? 'p.m.' : 'a.m.';
+      const h12  = hh % 12 || 12;
+      horaTexto  = `${h12}:${String(mm).padStart(2,'0')} ${ampm}`;
+    }catch(e){ horaTexto = horaRaw; }
+  }
 
   const msg = `📦 ¡Buenas ${nombre}! Tu pedido ya está listo para entrega 🎉
 
@@ -2096,7 +2574,7 @@ function waRender5(){
 📍 *Dirección de entrega:* ${dir}
 _(¿Sigue siendo correcta esta dirección?)_
 ━━━━━━━━━━━━━━━━━━
-🚚 ¿Podés recibir el paquete el día *${dia}* a las *${hora}*?
+🚚 ¿Podés recibir el paquete el día *${diaTexto}* a las *${horaTexto}*?
 
 Confirmanos para coordinar la entrega 😊
 — *Equipo ActiveFit Store | @activefitstore.cr*`;
