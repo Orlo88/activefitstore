@@ -1472,7 +1472,7 @@ function openModal(type,data={}){
   <div class="form-group"><label>Teléfono / WA</label><input type="tel" id="f-ctel" value="${esc(data.clienteTel||'')}" placeholder="8888-8888"></div>
   <div class="form-group"><label>Canal de contacto</label><select id="f-canal"><option value="">— Canal —</option>${['WhatsApp','Instagram','Facebook'].map(c=>`<option ${data.canal===c?'selected':''}>${c}</option>`).join('')}</select></div>
   <div class="form-group"><label>Zona entrega</label><select id="f-zona">${['San José','Cartago','Alajuela','Heredia','Limón','Puntarenas','Guanacaste'].map(z=>`<option ${data.zona===z?'selected':''}>${z}</option>`).join('')}</select></div>
-  <div class="form-group"><label>Marca</label><select id="f-marca">${['Nike','Jordan','Adidas','Reebok','New Balance','ASICS','Under Armour','Skechers','TYR','R.A.D','NoBull','While on Earth','Vans','Puma','Crocs','Otra'].map(m=>`<option ${data.marca===m?'selected':''}>${m}</option>`).join('')}</select></div>
+  <div class="form-group"><label>Marca</label><select id="f-marca">${['Nike','Jordan','Adidas','Reebok','New Balance','ASICS','Under Armour','Skechers','TYR','R.A.D','While on Earth','Vans','Puma','Crocs','Otra'].map(m=>`<option ${data.marca===m?'selected':''}>${m}</option>`).join('')}</select></div>
   <div class="form-group"><label>Modelo</label><input type="text" id="f-modelo" value="${esc(data.modelo||'')}" placeholder="Ej. Air Max 90"></div>
   <div class="form-group"><label>Talla US</label><input type="text" id="f-talla" value="${esc(data.talla||'')}" placeholder="10"></div>
   <div class="form-group"><label>Color</label><input type="text" id="f-color" value="${esc(data.color||'')}" placeholder="Blanco/Negro"></div>
@@ -2174,21 +2174,17 @@ const DIS_MARCAS_CONFIG={
   'Adidas':{
     icon:'⚽', color:'#000', textColor:'#fff',
     url:(modelo,talla,genero,color)=>{
-      // Adidas usa slugs: /us/women-samba_og, /us/men-ultraboost, /us/samba-og-shoes
-      // Convertimos el modelo a slug y agregamos prefijo de género
-      const slug = (modelo||'shoes').toLowerCase()
-        .replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-      const colorSlug = color ? '-'+color.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'') : '';
-      const gPrefix = genero==='women'?'women-':genero==='men'?'men-':'';
-      const urlSlug = gPrefix+slug+colorSlug;
-      // URL principal tipo slug (la que siempre funciona en adidas)
-      const slugUrl = `https://www.adidas.com/us/${urlSlug}`;
-      // Fallback: categoría de zapatillas por género
-      const fallbackUrl = genero==='women'?'https://www.adidas.com/us/women-shoes'
-        :genero==='men'?'https://www.adidas.com/us/men-shoes'
-        :'https://www.adidas.com/us/shoes';
-      // Usamos slug si hay modelo, sino categoría
-      return modelo ? slugUrl : fallbackUrl;
+      // Adidas bloquea /search con Akamai en muchas regiones.
+      // Las URLs de categoría por género siempre cargan correctamente.
+      // Al llegar a la categoría el usuario puede usar el buscador interno.
+      const gCat = genero==='women'?'women-shoes':genero==='men'?'men-shoes':'shoes';
+      const base = `https://www.adidas.com/us/${gCat}`;
+      // Si hay modelo, agregar hash que activa la búsqueda en la página
+      if(modelo){
+        const q = encodeURIComponent([modelo,color].filter(Boolean).join(' '));
+        return `${base}#query=${q}`;
+      }
+      return base;
     }
   },
   'Nike':{
@@ -2219,17 +2215,21 @@ const DIS_MARCAS_CONFIG={
     icon:'🔶', color:'#003da5', textColor:'#fff',
     url:(modelo,talla,genero,color)=>{
       const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
-      const g=genero==='women'?'&prefn1=gender&prefv1=Women':genero==='men'?'&prefn1=gender&prefv1=Men':'';
-      return `https://www.asics.com/us/en-us/search/?q=${q}${g}`;
+      // Asics: el filtro de género por prefn1 no funciona bien en búsqueda
+      // Usar la categoría correcta por género + búsqueda dentro
+      if(genero==='women') return `https://www.asics.com/us/en-us/women-running-shoes/c/aa10302000/?q=${q}&start=0&prefn1=gender&prefv1=Women`;
+      if(genero==='men')   return `https://www.asics.com/us/en-us/men-running-shoes/c/aa10102000/?q=${q}&start=0&prefn1=gender&prefv1=Men`;
+      return `https://www.asics.com/us/en-us/shoes/c/aa1000000/?q=${q}&start=0`;
     }
   },
   'Under Armour':{
     icon:'🛡️', color:'#1d1d1d', textColor:'#fff',
     url:(modelo,talla,genero,color)=>{
       const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
-      const g=genero==='women'?'f':genero==='men'?'m':'';
-      const gParam=g?`&gender=${g}`:'';
-      return `https://www.underarmour.com/en-us/c/mens-shoes/?q=${q}${gParam}`;
+      // URLs verificadas de underarmour.com
+      if(genero==='women') return `https://www.underarmour.com/en-us/c/womens/shoes/?q=${q}`;
+      if(genero==='men')   return `https://www.underarmour.com/en-us/c/mens/shoes/?q=${q}`;
+      return `https://www.underarmour.com/en-us/c/shoes/?q=${q}`;
     }
   },
   'Skechers':{
@@ -2243,8 +2243,15 @@ const DIS_MARCAS_CONFIG={
   'Crocs':{
     icon:'🐊', color:'#009a44', textColor:'#fff',
     url:(modelo,talla,genero,color)=>{
+      // Crocs no tiene búsqueda por query — navegar a categoría correcta
+      if(genero==='women') return `https://www.crocs.com/c/women/footwear`;
+      if(genero==='men')   return `https://www.crocs.com/c/men/footwear`;
+      if(genero==='kids')  return `https://www.crocs.com/c/kids/footwear`;
+      // Con modelo específico, ir a búsqueda interna
       const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
-      return `https://www.crocs.com/search?q=${q}`;
+      return modelo
+        ? `https://www.crocs.com/c/footwear/clogs?prefn1=searchterm&prefv1=${q}`
+        : `https://www.crocs.com/c/footwear/clogs`;
     }
   },
   'TYR':{
