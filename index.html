@@ -1188,7 +1188,109 @@ function renderDashboard(){
 function openPopup(title,html){document.getElementById('popup-title').textContent=title;document.getElementById('popup-body').innerHTML=html;document.getElementById('popup-overlay').classList.add('open')}
 function closePopup(){document.getElementById('popup-overlay').classList.remove('open')}
 function closePopupOverlay(e){if(e.target===document.getElementById('popup-overlay'))closePopup()}
-function pedidoCard(p){const g=calcGanancia(p);const gc=g.ganancia>0?'var(--green)':'var(--red)';return`<div class="popup-item"><div style="flex:1"><div style="font-weight:700;font-size:13px">${esc(p.clienteNombre)}</div><div style="font-size:11px;color:var(--text2)">${esc(p.marca)} ${esc(p.modelo)} ${p.talla?'T.'+p.talla:''}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${fmtD(p.fecha)} ${p.canal?'· '+p.canal:''}</div></div><div style="text-align:right;flex-shrink:0"><div style="font-weight:700;font-size:13px">${fmtM(p.precio)}</div><div style="font-size:11px;color:${gc}">gan. ${fmtM(g.ganancia)}</div><div style="margin-top:3px"><span class="${badgeClass(p.estado)}">${p.estado}</span></div></div></div>`}
+// ══════════════════════════════════════════════════
+// POPUP DETALLE PEDIDO
+// ══════════════════════════════════════════════════
+function viewPedido(id){
+  const p = CACHE.pedidos.find(x=>x.id===id);
+  if(!p) return;
+  const g   = calcGanancia(p);
+  const tcc = Number(CACHE.cfg?.tcc)||510;
+  const saldo = Number(p.precio||0) - Number(p.adelanto||0);
+  const gColor = g.ganancia>0?'var(--green)':g.ganancia<0?'var(--red)':'var(--text2)';
+
+  // Tracking visual
+  const steps=[
+    {lb:'① Pedido',   icon:'🛒', d:p.trk_pedidoMarca},
+    {lb:'② Marca envía',icon:'📦', d:p.trk_envioMarca},
+    {lb:'③ Miami',    icon:'✈️', d:p.trk_llegadaMiami},
+    {lb:'④ Monica CR',icon:'🏠', d:p.trk_llegadaCR}
+  ];
+  const done = steps.filter(s=>s.d).length;
+  const trkHTML = `<div style="display:flex;align-items:flex-start;overflow-x:auto;padding-bottom:4px;gap:0">
+    ${steps.map((s,i)=>`
+      <div style="display:flex;flex-direction:column;align-items:center;min-width:72px;flex:1">
+        <div style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;background:${s.d?'var(--orange-soft)':i===done?'var(--amber-soft)':'var(--surface3)'};border:2px solid ${s.d?'var(--orange)':i===done?'var(--amber)':'var(--border2)'}">${s.icon}</div>
+        <div style="font-size:10px;font-weight:700;color:var(--text2);margin-top:4px;text-align:center">${s.lb}</div>
+        <div style="font-size:10px;color:${s.d?'var(--orange)':'var(--text3)'};text-align:center">${s.d?fmtD(s.d):'pendiente'}</div>
+      </div>
+      ${i<3?`<div style="flex:1;height:2px;background:${s.d&&steps[i+1]?.d?'var(--orange)':'var(--border2)'};margin-top:14px;min-width:8px"></div>`:''}`
+    ).join('')}
+  </div>`;
+
+  const row=(lb,val,color='')=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">${lb}</span><span style="font-weight:600;${color?'color:'+color:''}">${val}</span></div>`;
+
+  const body = `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:19px;font-weight:900;font-family:'Barlow Condensed',sans-serif">${esc(p.clienteNombre)}</div>
+        ${p.clienteTel?`<a href="https://wa.me/506${(p.clienteTel||'').replace(/\D/g,'')}" target="_blank" style="font-size:12px;color:var(--orange)">📱 ${esc(p.clienteTel)}</a>`:'<span style="font-size:12px;color:var(--text3)">Sin teléfono</span>'}
+      </div>
+      <span class="${badgeClass(p.estado)}" style="font-size:12px;padding:4px 12px">${p.estado}</span>
+    </div>
+
+    <div style="background:var(--surface2);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:5px">Producto</div>
+      <div style="font-size:15px;font-weight:700">${esc(p.marca||'')} ${esc(p.modelo||'')}</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:3px">${[p.talla?'T.'+p.talla:'',p.color||'',p.zona?'📍 '+p.zona:''].filter(Boolean).join(' · ')}</div>
+      ${p.canal?`<div style="margin-top:5px">${canalBadge(p.canal)}</div>`:''}
+    </div>
+
+    <div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:5px">Financiero · T/C ₡${tcc}</div>
+      ${row('Precio de venta', fmtM(p.precio),'var(--text)')}
+      ${row('Costo tenis ($'+p.costoUsd+')', fmtM(g.costoCrcUsd))}
+      ${p.costoEnvio?row('Casillero Mónica', fmtM(g.costoEnvioCrc)):''}
+      ${row('Ganancia neta', fmtM(g.ganancia), gColor)}
+      ${row('Adelanto recibido', fmtM(p.adelanto))}
+      ${row('Saldo pendiente', fmtM(saldo), saldo>0?'var(--orange)':'var(--green)')}
+    </div>
+
+    ${p.trackingNum?`
+    <div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:5px">Tracking</div>
+      <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:8px 12px;display:flex;align-items:center;gap:8px">
+        <div style="font-family:monospace;font-size:12px;color:var(--blue);flex:1;word-break:break-all">${esc(p.trackingNum)}</div>
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="navigator.clipboard?.writeText('${esc(p.trackingNum)}').then(()=>toast('Copiado ✓','success'))">📋</button>
+      </div>
+    </div>`:''}
+
+    <div style="margin-bottom:14px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Tránsito</div>
+      ${trkHTML}
+    </div>
+
+    ${p.notas?`
+    <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text2);margin-bottom:12px">
+      <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text3)">Notas</span>
+      <div style="margin-top:4px">${esc(p.notas)}</div>
+    </div>`:''}
+
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="closePopup();editPedido('${p.id}')">✏️ Editar pedido</button>
+      <button class="btn btn-ghost" onclick="closePopup()">Cerrar</button>
+    </div>`;
+
+  openPopup(`📦 ${esc(p.clienteNombre)} — ${esc(p.marca||'')} ${esc(p.modelo||'')}`, body);
+}
+
+function pedidoCard(p){
+  const g=calcGanancia(p);
+  const gc=g.ganancia>0?'var(--green)':'var(--red)';
+  return`<div class="popup-item" style="cursor:pointer" onclick="closePopup();setTimeout(()=>viewPedido('${p.id}'),80)" title="Clic para ver detalle">
+    <div style="flex:1">
+      <div style="font-weight:700;font-size:13px">${esc(p.clienteNombre)}</div>
+      <div style="font-size:11px;color:var(--text2)">${esc(p.marca||'')} ${esc(p.modelo||'')} ${p.talla?'T.'+p.talla:''}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">${fmtD(p.fecha)} ${p.canal?'· '+p.canal:''}</div>
+    </div>
+    <div style="text-align:right;flex-shrink:0">
+      <div style="font-weight:700;font-size:13px">${fmtM(p.precio)}</div>
+      <div style="font-size:11px;color:${gc}">gan. ${fmtM(g.ganancia)}</div>
+      <div style="margin-top:3px"><span class="${badgeClass(p.estado)}">${p.estado}</span></div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">👆 Ver detalle</div>
+    </div>
+  </div>`;
+}
 function miniStats(items,a,b,c){return`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">${[[a[0],a[1],a[2]],[b[0],b[1],b[2]],[c[0],c[1],c[2]]].map(([lb,val,col])=>`<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">${lb}</div><div style="font-size:20px;font-weight:900;color:${col}">${val}</div></div>`).join('')}</div>`}
 function showBarDetail(mk,lb){const ps=CACHE.pedidos.filter(p=>p.fecha&&p.fecha.slice(0,7)===mk&&p.estado==='Entregado');if(!ps.length){openPopup(`${lb} — sin ventas`,'<p style="color:var(--text3);font-size:13px;padding:12px 0">No hubo ventas.</p>');return}const gan=ps.reduce((s,p)=>s+calcGanancia(p).ganancia,0);openPopup(`Ventas — ${lb}`,miniStats(ps,['Pares',ps.length,'var(--orange)'],['Ingresos',fmtM(ps.reduce((s,p)=>s+Number(p.precio||0),0)),'var(--green)'],['Ganancia',fmtM(gan),'var(--purple)'])+ps.map(p=>pedidoCard(p)).join(''))}
 function showEstadoDetail(estado){const ps=CACHE.pedidos.filter(p=>p.estado===estado);if(!ps.length){openPopup(estado,'<p style="color:var(--text3);font-size:13px;padding:12px 0">Sin pedidos.</p>');return}const saldoTot=ps.reduce((s,p)=>s+(Number(p.precio||0)-Number(p.adelanto||0)),0);openPopup(`Pedidos — ${estado}`,miniStats(ps,['Cantidad',ps.length,'var(--orange)'],['Ingresos',fmtM(ps.reduce((s,p)=>s+Number(p.precio||0),0)),'var(--green)'],['Saldo pend.',fmtM(saldoTot),'var(--amber)'])+ps.map(p=>pedidoCard(p)).join(''))}
@@ -1229,9 +1331,9 @@ function renderPedidos(){
     const mini=`<div style="display:flex;align-items:center;gap:2px">${etapas.map((d,i2)=>`<div title="${['Pedido','Marca','Miami','CR'][i2]}${d?' — '+fmtD(d):''}" style="width:11px;height:11px;border-radius:50%;border:1.5px solid ${d?'var(--orange)':i2===done?'var(--amber)':'var(--border2)'};background:${d?'var(--orange-soft)':'var(--surface3)'}"></div>${i2<3?`<div style="width:7px;height:1.5px;background:${d&&etapas[i2+1]?'var(--orange)':'var(--border2)'}"></div>`:''}`).join('')}</div>`;
     const wa=`https://wa.me/506${String(p.clienteTel||'').replace(/\D/g,'')}?text=${encodeURIComponent((CACHE.cfg?.msg||'').replace('{saldo}',saldo.toLocaleString('es-CR')))}`;
     const diasMostrar=p.estado==='Entregado'?(daysBetween(p.fecha,p.trk_llegadaCR)||'?')+'d':tot!==null?tot+'d':'—';
-    return`<tr>
+    return`<tr style="cursor:pointer" onclick="viewPedido('${p.id}')" title="Ver detalle">
       <td style="font-size:10px;color:var(--text3)">#${String(i+1).padStart(3,'0')}</td>
-      <td><div style="font-weight:600;font-size:12px">${esc(p.clienteNombre)}</div>${p.clienteTel?`<a href="${wa}" target="_blank" style="font-size:10px;color:var(--orange)">${esc(p.clienteTel)}</a>`:''}</td>
+      <td><div style="font-weight:600;font-size:12px">${esc(p.clienteNombre)}</div>${p.clienteTel?`<a href="${wa}" target="_blank" style="font-size:10px;color:var(--orange)" onclick="event.stopPropagation()">${esc(p.clienteTel)}</a>`:''}</td>
       <td><div style="font-size:12px">${esc(p.modelo)}</div><div style="font-size:10px;color:var(--text3)">${esc(p.marca||'')} ${p.talla?'T.'+p.talla:''} ${p.color?'· '+p.color:''}</div></td>
       <td style="font-weight:700">${fmtM(p.precio)}</td>
       <td style="font-size:11px;color:var(--text3)">${fmtM(g.totalCosto)}<div style="font-size:10px">${p.costoUsd?'$'+p.costoUsd:''} ${p.costoEnvio?'+ '+fmtM(p.costoEnvio):''}</div></td>
@@ -1239,10 +1341,11 @@ function renderPedidos(){
       <td><span class="saldo-tag">${fmtM(saldo)}</span></td>
       <td>${p.canal?canalBadge(p.canal):'—'}</td>
       <td><span class="${badgeClass(p.estado)}">${p.estado}</span></td>
-      <td>${p.trackingNum?`<div style="display:flex;align-items:center;gap:4px"><span style="font-family:monospace;font-size:10px;color:var(--blue);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(p.trackingNum)}">${esc(p.trackingNum)}</span><button class="btn btn-sm btn-ghost btn-icon" style="width:22px;height:22px;font-size:10px" onclick="copyTrackingLine('${esc(p.trackingNum)}','${p.trk_llegadaMiami||''}')" title="Copiar tracking + fecha Miami">📋</button></div>`:'<span style="color:var(--text3);font-size:11px">—</span>'}</td>
+      <td onclick="event.stopPropagation()">${p.trackingNum?`<div style="display:flex;align-items:center;gap:4px"><span style="font-family:monospace;font-size:10px;color:var(--blue);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(p.trackingNum)}">${esc(p.trackingNum)}</span><button class="btn btn-sm btn-ghost btn-icon" style="width:22px;height:22px;font-size:10px" onclick="copyTrackingLine('${esc(p.trackingNum)}','${p.trk_llegadaMiami||''}')" title="Copiar tracking">📋</button></div>`:'<span style="color:var(--text3);font-size:11px">—</span>'}</td>
       <td>${mini}</td>
       <td style="font-weight:700;color:${dColor};font-size:11px">${diasMostrar}</td>
-      <td><div style="display:flex;gap:2px">
+      <td onclick="event.stopPropagation()"><div style="display:flex;gap:2px">
+        <button class="btn btn-sm btn-ghost btn-icon" title="Ver detalle" onclick="viewPedido('${p.id}')">👁️</button>
         <button class="btn btn-sm btn-ghost btn-icon" onclick="editPedido('${p.id}')">✏️</button>
         <button class="btn btn-sm btn-ghost btn-icon" onclick="quickStatus('${p.id}')">🔄</button>
         <button class="btn btn-sm btn-danger btn-icon" onclick="deletePedido('${p.id}')">🗑️</button>
@@ -2071,15 +2174,29 @@ const DIS_MARCAS_CONFIG={
   'Adidas':{
     icon:'⚽', color:'#000', textColor:'#fff',
     url:(modelo,talla,genero,color)=>{
-      const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
-      const g=genero==='women'?'&gender=women':genero==='men'?'&gender=men':'';
-      return `https://www.adidas.com/us/search?q=${q}${g}`;
+      // Adidas usa slugs: /us/women-samba_og, /us/men-ultraboost, /us/samba-og-shoes
+      // Convertimos el modelo a slug y agregamos prefijo de género
+      const slug = (modelo||'shoes').toLowerCase()
+        .replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+      const colorSlug = color ? '-'+color.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'') : '';
+      const gPrefix = genero==='women'?'women-':genero==='men'?'men-':'';
+      const urlSlug = gPrefix+slug+colorSlug;
+      // URL principal tipo slug (la que siempre funciona en adidas)
+      const slugUrl = `https://www.adidas.com/us/${urlSlug}`;
+      // Fallback: categoría de zapatillas por género
+      const fallbackUrl = genero==='women'?'https://www.adidas.com/us/women-shoes'
+        :genero==='men'?'https://www.adidas.com/us/men-shoes'
+        :'https://www.adidas.com/us/shoes';
+      // Usamos slug si hay modelo, sino categoría
+      return modelo ? slugUrl : fallbackUrl;
     }
   },
   'Nike':{
     icon:'✔️', color:'#111', textColor:'#fff',
     url:(modelo,talla,genero,color)=>{
       const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
+      // Nike gender filter: 7puR = women, 3pods = men (category IDs)
+      const gSuffix = genero==='women'?'-7puR':genero==='men'?'-3pods':'';
       return `https://www.nike.com/w?q=${q}&vst=${q}`;
     }
   },
@@ -2110,27 +2227,24 @@ const DIS_MARCAS_CONFIG={
     icon:'🛡️', color:'#1d1d1d', textColor:'#fff',
     url:(modelo,talla,genero,color)=>{
       const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
-      const g=genero==='women'?'womens-':genero==='men'?'mens-':'';
-      return `https://www.underarmour.com/en-us/search?q=${q}`;
+      const g=genero==='women'?'f':genero==='men'?'m':'';
+      const gParam=g?`&gender=${g}`:'';
+      return `https://www.underarmour.com/en-us/c/mens-shoes/?q=${q}${gParam}`;
     }
   },
   'Skechers':{
     icon:'👟', color:'#003087', textColor:'#fff',
     url:(modelo,talla,genero,color)=>{
       const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
-      const g=genero==='women'?'&Gender=Female':genero==='men'?'&Gender=Male':'';
-      return `https://www.skechers.com/search/?q=${q}${g}`;
+      const g=genero==='women'?'&prefn1=gender&prefv1=Women%27s':genero==='men'?'&prefn1=gender&prefv1=Men%27s':'';
+      return `https://www.skechers.com/search?q=${q}${g}`;
     }
   },
   'Crocs':{
     icon:'🐊', color:'#009a44', textColor:'#fff',
     url:(modelo,talla,genero,color)=>{
       const q=encodeURIComponent([modelo,color].filter(Boolean).join(' '));
-      const g=genero==='women'?'/c/women/footwear':genero==='men'?'/c/men/footwear':genero==='kids'?'/c/kids/footwear':'/c/footwear';
-      // Si hay modelo específico, ir a búsqueda; si no, ir a categoría por género
-      return modelo
-        ? `https://www.crocs.com/search?q=${q}&lang=en_US`
-        : `https://www.crocs.com${g}/clogs`;
+      return `https://www.crocs.com/search?q=${q}`;
     }
   },
   'TYR':{
